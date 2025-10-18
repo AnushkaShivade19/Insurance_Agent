@@ -18,6 +18,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if not DEBUG else ["*"
 LOGIN_URL = 'login'
 # Application definition
 INSTALLED_APPS = [
+    'home',
     'chatbot',
     'insurance', 
     'django.contrib.admin',

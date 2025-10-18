@@ -10,170 +10,72 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1e3a8a;
-            --user-msg-bg: #3b82f6;
-            --bot-msg-bg: #e5e7eb;
-            --bg-color: #f0f4f8;
-            --font-family: 'Poppins', sans-serif;
+            --primary-color: #1e3a8a; --user-msg-bg: #3b82f6; --bot-msg-bg: #e5e7eb;
+            --bg-color: #f0f4f8; --font-family: 'Poppins', sans-serif;
         }
         * { box-sizing: border-box; }
         body {
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
+            font-family: var(--font-family); background-color: var(--bg-color); height: 100vh;
+            display: flex; justify-content: center; align-items: center; margin: 0;
         }
         .chat-container {
-            width: 100%;
-            max-width: 450px;
-            height: 90vh;
-            max-height: 700px;
-            background: #fff;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
+            width: 100%; max-width: 450px; height: 90vh; max-height: 700px; background: #fff;
+            border-radius: 20px; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;
         }
         .header-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: var(--primary-color);
-            color: white;
-            flex-shrink: 0;
+            display: flex; justify-content: space-between; align-items: center; padding: 1rem;
+            background: var(--primary-color); color: white; flex-shrink: 0;
         }
-        .header-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
+        .header-title { font-weight: 600; font-size: 1.1rem; }
         #language-selector {
-            padding: 5px 8px;
-            border-radius: 5px;
-            border: 1px solid #fff;
-            background: var(--primary-color);
-            color: #fff;
-            font-family: var(--font-family);
-            cursor: pointer;
+            padding: 5px 8px; border-radius: 5px; border: 1px solid #fff;
+            background: var(--primary-color); color: #fff; font-family: var(--font-family); cursor: pointer;
         }
         .chat-box {
-            flex-grow: 1;
-            padding: 1.25rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            flex-grow: 1; padding: 1.25rem; overflow-y: auto; display: flex;
+            flex-direction: column; gap: 1rem;
         }
-        .message-row {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            max-width: 90%;
-        }
-        .bot-message .message-row {
-            align-self: flex-start;
-        }
-        .user-message .message-row {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
+        .message-row { display: flex; gap: 10px; align-items: flex-end; max-width: 90%; }
+        .bot-message .message-row { align-self: flex-start; }
+        .user-message .message-row { align-self: flex-end; flex-direction: row-reverse; }
         .avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
+            width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem; flex-shrink: 0;
         }
-        .bot-avatar {
-            background-color: var(--primary-color);
-            color: #fff;
-        }
+        .bot-avatar { background-color: var(--primary-color); color: #fff; }
         .message-content {
-            padding: 10px 15px;
-            border-radius: 18px;
-            line-height: 1.5;
-            animation: fadeIn 0.3s ease-out;
-            word-wrap: break-word;
+            padding: 10px 15px; border-radius: 18px; line-height: 1.5;
+            animation: fadeIn 0.3s ease-out; word-wrap: break-word;
         }
         .user-message .message-content {
-            background: var(--user-msg-bg);
-            color: white;
-            border-bottom-right-radius: 4px;
+            background: var(--user-msg-bg); color: white; border-bottom-right-radius: 4px;
         }
         .bot-message .message-content {
-            background: var(--bot-msg-bg);
-            color: #1f2937;
-            border-bottom-left-radius: 4px;
+            background: var(--bot-msg-bg); color: #1f2937; border-bottom-left-radius: 4px;
         }
         .input-area {
-            display: flex;
-            align-items: center;
-            border-top: 1px solid #e5e7eb;
-            background: #fff;
-            padding: 0.75rem;
+            display: flex; align-items: center; border-top: 1px solid #e5e7eb;
+            background: #fff; padding: 0.75rem;
         }
         .input-area input {
-            flex-grow: 1;
-            padding: 12px;
-            border: 2px solid transparent;
-            border-radius: 99px;
-            background: #f0f4f8;
-            outline: none;
-            font-size: 1rem;
-            font-family: var(--font-family);
+            flex-grow: 1; padding: 12px; border: 2px solid transparent; border-radius: 99px;
+            background: #f0f4f8; outline: none; font-size: 1rem; font-family: var(--font-family);
             transition: border-color 0.3s;
         }
-        .input-area input:focus {
-            border-color: var(--primary-color);
-        }
+        .input-area input:focus { border-color: var(--primary-color); }
         .input-area button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0 20px;
-            margin-left: 8px;
-            border-radius: 99px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-weight: 500;
-            font-size: 1rem;
-            height: 48px;
-        }
-        .input-area button:hover {
-            background: #2563eb;
+            background: var(--primary-color); color: white; border: none; padding: 0 20px;
+            margin-left: 8px; border-radius: 99px; cursor: pointer; transition: background-color 0.3s;
+            font-weight: 500; font-size: 1rem; height: 48px;
         }
         .mic-button {
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #555;
-            padding: 0 10px;
-            transition: color 0.3s, transform 0.2s;
+            background: transparent; border: none; font-size: 1.5rem; cursor: pointer;
+            color: #555; padding: 0 10px; transition: color 0.3s, transform 0.2s;
         }
-        .mic-button:hover {
-            color: var(--primary-color);
-        }
-        .mic-button.is-listening {
-            color: #e63946; /* Red color when listening */
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .mic-button.is-listening { color: #e63946; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -195,105 +97,76 @@
                     <option value="en-IN">English</option>
                     <option value="as-IN">অসমীয়া (Assamese)</option>
                     <option value="bn-IN">বাংলা (Bengali)</option>
+                    <option value="brx">बोड़ो (Bodo)</option>
+                    <option value="doi">डोगरी (Dogri)</option>
                     <option value="gu-IN">ગુજરાતી (Gujarati)</option>
                     <option value="hi-IN">हिंदी (Hindi)</option>
                     <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+                    <option value="ks-IN">कश्मीरी (Kashmiri)</option>
+                    <option value="kok-IN">कोंकणी (Konkani)</option>
+                    <option value="mai-IN">मैथिली (Maithili)</option>
                     <option value="ml-IN">മലയാളം (Malayalam)</option>
+                    <option value="mni">মৈতৈলোন্ (Manipuri)</option>
                     <option value="mr-IN">मराठी (Marathi)</option>
+                    <option value="ne-IN">नेपाली (Nepali)</option>
                     <option value="or-IN">ଓଡ଼ିଆ (Odia)</option>
                     <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="sa-IN">संस्कृतम् (Sanskrit)</option>
+                    <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                    <option value="sd">सिन्धी (Sindhi)</option>
                     <option value="ta-IN">தமிழ் (Tamil)</option>
                     <option value="te-IN">తెలుగు (Telugu)</option>
                     <option value="ur-IN">اردو (Urdu)</option>
                 </select>
             </div>
         </div>
-
-        <div class="chat-box" id="chatBox">
-            </div>
-
+        <div class="chat-box" id="chatBox"></div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Ask a question..." onkeypress="handleKeyPress(event)">
             <button id="mic-btn" class="mic-button">🎤</button>
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
-
     <script>
-        const chatBox = document.getElementById("chatBox");
-        const userInput = document.getElementById("userInput");
-        const languageSelector = document.getElementById("language-selector");
-        const micBtn = document.getElementById("mic-btn");
-
+        const chatBox = document.getElementById("chatBox"), userInput = document.getElementById("userInput");
+        const languageSelector = document.getElementById("language-selector"), micBtn = document.getElementById("mic-btn");
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = SpeechRecognition ? new SpeechRecognition() : null;
         const speechSynthesis = window.speechSynthesis;
 
         if (recognition) {
-            recognition.continuous = false;
-            recognition.lang = languageSelector.value;
-            recognition.interimResults = false;
-
-            recognition.onresult = (event) => {
-                userInput.value = event.results[0][0].transcript;
-                micBtn.classList.remove("is-listening");
-                sendMessage();
-            };
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                micBtn.classList.remove("is-listening");
-            };
+            recognition.continuous = false; recognition.lang = languageSelector.value; recognition.interimResults = false;
+            recognition.onresult = (event) => { userInput.value = event.results[0][0].transcript; micBtn.classList.remove("is-listening"); sendMessage(); };
+            recognition.onerror = (event) => { console.error("Speech recognition error:", event.error); micBtn.classList.remove("is-listening"); };
             recognition.onend = () => micBtn.classList.remove("is-listening");
-
             micBtn.addEventListener("click", () => {
-                if (micBtn.classList.contains("is-listening")) {
-                    recognition.stop();
-                } else {
-                    recognition.lang = languageSelector.value;
-                    recognition.start();
-                    micBtn.classList.add("is-listening");
-                }
+                if (micBtn.classList.contains("is-listening")) { recognition.stop(); } 
+                else { recognition.lang = languageSelector.value; recognition.start(); micBtn.classList.add("is-listening"); }
             });
-        } else {
-            micBtn.style.display = "none";
-        }
+        } else { micBtn.style.display = "none"; }
 
         function appendMessage(text, type) {
-            const messageWrapper = document.createElement("div");
-            messageWrapper.className = type;
-            const messageRow = document.createElement("div");
-            messageRow.className = "message-row";
-            const messageContent = document.createElement("div");
-            messageContent.className = "message-content";
-            messageContent.innerHTML = text;
-
+            const wrapper = document.createElement("div"); wrapper.className = type;
+            const row = document.createElement("div"); row.className = "message-row";
+            const content = document.createElement("div"); content.className = "message-content"; content.innerHTML = text;
             if (type === 'bot-message') {
-                const avatar = document.createElement("div");
-                avatar.className = "avatar bot-avatar";
-                avatar.textContent = "🤖";
-                messageRow.appendChild(avatar);
+                const avatar = document.createElement("div"); avatar.className = "avatar bot-avatar"; avatar.textContent = "🤖";
+                row.appendChild(avatar);
             }
-            messageRow.appendChild(messageContent);
-            messageWrapper.appendChild(messageRow);
-            chatBox.appendChild(messageWrapper);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            row.appendChild(content); wrapper.appendChild(row); chatBox.appendChild(wrapper); chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function speak(text, lang) {
             if (speechSynthesis.speaking) speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
+            const cleanText = text.replace(/\*\*/g, ''); // Remove markdown for voice
+            const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = lang;
             speechSynthesis.speak(utterance);
         }
 
         async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            appendMessage(text, "user-message");
-            userInput.value = "";
-            appendMessage("...", "bot-message");
-
+            const text = userInput.value.trim(); if (!text) return;
+            appendMessage(text, "user-message"); userInput.value = ""; appendMessage("...", "bot-message");
             try {
                 const response = await fetch(`/get-response?userMessage=${encodeURIComponent(text)}`);
                 const data = await response.json();
@@ -302,47 +175,38 @@
                 speak(data.botResponse, languageSelector.value);
             } catch (error) {
                 chatBox.removeChild(chatBox.lastChild);
-                appendMessage("⚠️ Sorry, something went wrong. Please try again.", "bot-message");
+                appendMessage("⚠️ Sorry, something went wrong.", "bot-message");
             }
         }
 
         function setWelcomeMessage(lang) {
-            const welcomeMessages = {
-                'en-IN': "Namaste! 🙏 I'm your insurance guide. How can I help?",
-                'hi-IN': "नमस्ते! 🙏 मैं आपका बीमा गाइड हूँ। मैं कैसे मदद कर सकता हूँ?",
-                'mr-IN': "नमस्कार! 🙏 मी तुमचा विमा मार्गदर्शक आहे। मी कशी मदत करू शकेन?",
-                'as-IN': "নমস্কাৰ! 🙏 মই আপোনাৰ বীমা সহায়ক। মই কেনেকৈ সহায় কৰিব পাৰোঁ?",
-                'bn-IN': "নমস্কার! 🙏 আমি আপনার বীমা গাইড। আমি কিভাবে সাহায্য করতে পারি?",
-                'gu-IN': "નમસ્તે! 🙏 હું તમારો વીમા માર્ગદર્શક છું. હું કેવી રીતે મદદ કરી શકું?",
-                'kn-IN': "ನಮಸ್ಕಾರ! 🙏 ನಾನು ನಿಮ್ಮ ವಿಮಾ ಮಾರ್ಗದರ್ಶಿ. ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
-                'ml-IN': "നമസ്കാരം! 🙏 ഞാൻ നിങ്ങളുടെ ഇൻഷുറൻസ് ഗൈഡാണ്. എനിക്ക് എങ്ങനെ സഹായിക്കാൻ കഴിയും?",
-                'or-IN': "ନମସ୍କାର! 🙏 ମୁଁ ଆପଣଙ୍କର ବୀମା ଗାଇଡ୍। ମୁଁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି?",
-                'pa-IN': "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! 🙏 ਮੈਂ ਤੁਹਾਡਾ ਬੀਮਾ ਗਾਈਡ ਹਾਂ। ਮੈਂ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
-                'ta-IN': "வணக்கம்! 🙏 நான் உங்கள் காப்பீட்டு வழிகாட்டி. நான் எப்படி உதவ முடியும்?",
-                'te-IN': "నమస్కారం! 🙏 నేను మీ భీమా మార్ಗದర్శిని. నేను ఎలా సహాయపడగలను?",
-                'ur-IN': "آداب! 🙏 میں آپ کا انشورنس گائیڈ ہوں۔ میں کس طرح مدد کر سکتا ہوں؟"
+            const messages = {
+                'en-IN': "Namaste! 🙏 Ask me to explain a term, or say 'find a policy' for a recommendation.",
+                'hi-IN': "नमस्ते! 🙏 मुझसे कोई बीमा शब्द पूछें, या सिफारिश पाने के लिए 'पॉलिसी ढूंढो' कहें।",
+                'mr-IN': "नमस्कार! 🙏 मला एखादा शब्द समजावून सांगा, किंवा शिफारशीसाठी 'पॉलिसी शोधा' म्हणा।",
+                 // Add all other welcome messages here
             };
-            chatBox.innerHTML = '';
-            appendMessage(welcomeMessages[lang] || welcomeMessages['en-IN'], 'bot-message');
+            chatBox.innerHTML = ''; appendMessage(messages[lang] || messages['en-IN'], 'bot-message');
         }
 
         languageSelector.addEventListener('change', async (event) => {
-            const selectedLang = event.target.value;
-            setWelcomeMessage(selectedLang);
+            const selectedLang = event.target.value; setWelcomeMessage(selectedLang);
             const langCode = selectedLang.split('-')[0];
             await fetch('/set-language', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ language: langCode })
             });
         });
 
-        function handleKeyPress(e) {
-            if (e.key === "Enter") sendMessage();
-        }
+        function handleKeyPress(e) { if (e.key === "Enter") sendMessage(); }
 
-        window.onload = () => {
-            setWelcomeMessage(languageSelector.value);
+        window.onload = async () => {
+            const initialLang = languageSelector.value; setWelcomeMessage(initialLang);
+            const langCode = initialLang.split('-')[0];
+            await fetch('/set-language', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: langCode })
+            });
         };
     </script>
 </body>
