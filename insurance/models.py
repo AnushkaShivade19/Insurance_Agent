@@ -106,3 +106,20 @@ class FAQ(models.Model):
     def __str__(self):
         return self.question
 
+class Agent(models.Model):
+    """
+    Stores data for local insurance agents who can assist users.
+    Includes location fields for future mapping integration.
+    """
+    name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15, help_text="Agent's direct contact number")
+    email = models.EmailField(blank=True, null=True)
+    address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    # Location fields for future mapping (optional, but good practice)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.city}"

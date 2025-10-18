@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Insurance Products - Gramin Suraksha Mitra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #D9534F; --secondary-color: #1e3a8a; --accent-color: #F0AD4E;
+            --bg-color: #FEFBF6; --text-color: #3D3D3D; --font-serif: 'Lora', serif; --font-sans: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-sans); margin: 0; background-color: var(--bg-color); color: var(--text-color); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0;
+            background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .navbar .logo { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 600; color: var(--secondary-color); }
+        .nav-links a { margin-left: 2rem; text-decoration: none; color: var(--text-color); font-weight: 500; }
+        .cta-button {
+            background-color: var(--primary-color); color: #fff !important; padding: 10px 25px;
+            border-radius: 50px; text-decoration: none; transition: background-color 0.3s;
+        }
+        .page-header { padding: 3rem 0; text-align: center; }
+        .page-header h1 { font-family: var(--font-serif); font-size: 2.8rem; color: var(--secondary-color); margin-bottom: 0.5rem; }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            padding-bottom: 4rem;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+        .product-card-header {
+            background-color: var(--secondary-color);
+            color: #fff;
+            padding: 1.5rem;
+        }
+        .product-card-header h2 { margin: 0; font-size: 1.6rem; font-family: var(--font-serif); }
+        .product-card-header .product-type { font-size: 1rem; opacity: 0.8; }
+        .product-card-body { padding: 1.5rem; flex-grow: 1; }
+        .product-card-body h3 { font-size: 1.2rem; color: var(--text-color); border-left: 3px solid var(--accent-color); padding-left: 10px; }
+        .product-card-body p, .product-card-body ul { line-height: 1.7; }
+        .product-card-footer {
+            background: #f9f9f9;
+            padding: 1rem 1.5rem;
+            text-align: right;
+        }
+        .footer { background-color: var(--secondary-color); color: #fff; text-align: center; padding: 2rem 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container navbar">
+            <div class="logo">Gramin Suraksha Mitra</div>
+            <nav class="nav-links">
+                <a href="{% url 'homepage' %}">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                {% endif %}
+                <a href="{% url 'chat' %}" class="cta-button">Talk to Agent</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Our Insurance Products</h1>
+            <p>Simple and reliable plans designed for the needs of rural India.</p>
+        </div>
+
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-card-header">
+                    <h2>{{ product.name }}</h2>
+                    <p class="product-type">{{ product.get_product_type_display }}</p>
+                </div>
+                <div class="product-card-body">
+                    <p>{{ product.description }}</p>
+                    <h3>Key Features:</h3>
+                    <p>{{ product.key_features|linebreaksbr }}</p>
+                </div>
+                <div class="product-card-footer">
+                    <strong>Starting at ₹{{ product.base_premium|floatformat:0 }}</strong>
+                    <a href="{% url 'chat' %}" class="cta-button" style="margin-left: 1rem;">Ask Agent</a>
+                </div>
+            </div>
+            {% empty %}
+                <p>No insurance products are available at this time. Please check back later.</p>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Gramin Suraksha Mitra. Securing Rural India's Future.</p>
+    </footer>
+</body>
+</html>

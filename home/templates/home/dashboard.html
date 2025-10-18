@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Dashboard - Gramin Suraksha Mitra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #D9534F; --secondary-color: #1e3a8a; --accent-color: #F0AD4E;
+            --bg-color: #FEFBF6; --text-color: #3D3D3D; --font-serif: 'Lora', serif; --font-sans: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-sans); margin: 0; background-color: var(--bg-color); color: var(--text-color); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0;
+            background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .navbar .logo { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 600; color: var(--secondary-color); }
+        .nav-links a { margin-left: 2rem; text-decoration: none; color: var(--text-color); font-weight: 500; }
+        .cta-button {
+            background-color: var(--primary-color); color: #fff !important; padding: 10px 25px;
+            border-radius: 50px; text-decoration: none; transition: background-color 0.3s;
+        }
+        .dashboard-header { padding: 3rem 0; text-align: center; }
+        .dashboard-header h1 { font-family: var(--font-serif); font-size: 2.8rem; color: var(--secondary-color); margin-bottom: 0.5rem; }
+        .section { margin-bottom: 3rem; }
+        .section-title { font-size: 1.8rem; font-weight: 600; color: var(--secondary-color); margin-bottom: 1.5rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem; }
+        .policy-grid, .claim-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem; 
+        }
+        .policy-card {
+            background: #fff; border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            border-left: 5px solid var(--secondary-color);
+        }
+        .policy-card.status-EXPIRED { border-left-color: #aaa; }
+        .policy-card h3 { margin: 0 0 1rem 0; font-size: 1.4rem; color: var(--secondary-color); }
+        .policy-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .policy-details p { margin: 0; }
+        .policy-details .label { font-weight: 600; color: #555; }
+        .status-badge {
+            padding: 4px 12px; border-radius: 20px; color: #fff; font-size: 0.9rem;
+            font-weight: 500; text-transform: capitalize;
+        }
+        /* Claim status badges */
+        .status-ACTIVE { background-color: #5CB85C; } 
+        .status-EXPIRED { background-color: #777; }
+        .status-FILED, .status-IN_REVIEW { background-color: var(--accent-color); }
+        .status-APPROVED { background-color: #1e3a8a; }
+        .status-REJECTED { background-color: var(--primary-color); }
+        .no-data { text-align: center; padding: 2rem; background: #fff; border-radius: 10px; }
+        .footer { background-color: var(--secondary-color); color: #fff; text-align: center; padding: 2rem 0; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container navbar">
+            <div class="logo">Gramin Suraksha Mitra</div>
+            <nav class="nav-links">
+                <a href="{% url 'homepage' %}">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                <a href="{% url 'agents' %}">Agents</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                {% endif %}
+                <a href="{% url 'chat' %}" class="cta-button">Talk to Agent</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1>Welcome, {{ user.first_name|default:user.username }}!</h1>
+            <p>Here is an overview of your insurance policies and claims.</p>
+        </div>
+
+        <section class="section">
+            <h2 class="section-title">Your Policies</h2>
+            <div class="policy-grid">
+                {% if policies %}
+                    {% for policy in policies %}
+                    <div class="policy-card status-{{ policy.status }}">
+                        <h3>{{ policy.product.name }} (#{{ policy.policy_number }})</h3>
+                        <div class="policy-details">
+                            <p><span class="label">Status:</span> <span class="status-badge status-{{ policy.status }}">{{ policy.get_status_display }}</span></p>
+                            <p><span class="label">Premium:</span> ₹{{ policy.premium_amount }}</p>
+                            <p><span class="label">Expires On:</span> {{ policy.expiry_date|date:"d M Y" }}</p>
+                            <p><span class="label">Sum Assured:</span> ₹{{ policy.sum_assured }}</p>
+                        </div>
+                        
+                        <div style="text-align: right; margin-top: 1rem;">
+                            {% if policy.status == 'ACTIVE' %}
+                            <a href="{% url 'file_claim' %}?policy_id={{ policy.id }}" class="cta-button" style="padding: 8px 15px; font-size: 0.9rem;">File Claim</a>
+                            {% else %}
+                            <span style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600;">{{ policy.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data">
+                        <p>You do not have any active policies with us. Would you like to find one?</p>
+                        <a href="{% url 'chat' %}" class="cta-button">Get Recommendation</a>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Your Claims</h2>
+            <div class="claim-grid">
+                {% if claims %}
+                    {% for claim in claims %}
+                    <a href="{% url 'claim_detail' claim.id %}" style="text-decoration: none; color: inherit;">
+                        <div class="policy-card">
+                            <h3>Claim #{{ claim.id }} for Policy #{{ claim.policy.policy_number }}</h3>
+                            <div class="policy-details">
+                                <p><span class="label">Status:</span> <span class="status-badge status-{{ claim.status }}">{{ claim.get_status_display }}</span></p>
+                                <p><span class="label">Amount:</span> ₹{{ claim.claim_amount }}</p>
+                                <p><span class="label">Date Filed:</span> {{ claim.date_filed|date:"d M Y" }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data"><p>You have not filed any claims yet. <a href="{% url 'file_claim' %}" style="color: var(--primary-color);">File a new claim now.</a></p></div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Gramin Suraksha Mitra. Securing Rural India's Future.</p>
+    </footer>
+</body>
+</html>

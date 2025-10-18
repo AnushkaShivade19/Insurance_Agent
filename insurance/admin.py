@@ -1,7 +1,7 @@
 # insurance/admin.py
 
 from django.contrib import admin
-from .models import Profile, InsuranceProduct, Policy, Claim, FAQ
+from .models import Profile, InsuranceProduct, Policy, Claim, FAQ, Agent
 
 # ... (ProfileAdmin, InsuranceProductAdmin, PolicyAdmin are correct) ...
 
@@ -16,3 +16,9 @@ class ClaimAdmin(admin.ModelAdmin):
 class FAQAdmin(admin.ModelAdmin):
     list_display = ('question', 'is_active')
     list_filter = ('is_active',)
+
+@admin.register(Agent) # --- ADD THIS NEW CLASS ---
+class AgentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone_number', 'city', 'is_active')
+    list_filter = ('city', 'is_active')
+    search_fields = ('name', 'city', 'phone_number')

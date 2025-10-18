@@ -7,15 +7,22 @@
     <title>Gramin Suraksha Mitra 💬</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* --- WEBSITE COLORS AND FONTS --- */
         :root {
-            --primary-color: #1e3a8a; --user-msg-bg: #3b82f6; --bot-msg-bg: #e5e7eb;
-            --bg-color: #f0f4f8; --font-family: 'Poppins', sans-serif;
+            --primary-color: #D9534F; /* Terracotta/Red (CTA) - Matches Homepage Highlight */
+            --secondary-color: #1e3a8a; /* Deep Blue (Trust/Header) - Matches Homepage Secondary */
+            --accent-color: #F0AD4E; /* Marigold Yellow */
+            --user-msg-bg: #4c69b5;   /* A darker blue for user message contrast */
+            --bot-msg-bg: #e5e7eb;
+            --bg-color: #f0f4f8;
+            --font-sans: 'Poppins', sans-serif;
+            --font-serif: 'Lora', serif;
         }
         * { box-sizing: border-box; }
         body {
-            font-family: var(--font-family); background-color: var(--bg-color); height: 100vh;
+            font-family: var(--font-sans); background-color: var(--bg-color); height: 100vh;
             display: flex; justify-content: center; align-items: center; margin: 0;
         }
         .chat-container {
@@ -23,15 +30,24 @@
             border-radius: 20px; display: flex; flex-direction: column;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;
         }
+        /* --- HEADER STYLES --- */
         .header-controls {
             display: flex; justify-content: space-between; align-items: center; padding: 1rem;
-            background: var(--primary-color); color: white; flex-shrink: 0;
+            background: var(--secondary-color); /* Deep Blue Header */
+            color: white; flex-shrink: 0;
         }
         .header-title { font-weight: 600; font-size: 1.1rem; }
+        .header-title, .header-title span { font-family: var(--font-serif); } /* Use serif for title for consistency */
+
         #language-selector {
             padding: 5px 8px; border-radius: 5px; border: 1px solid #fff;
-            background: var(--primary-color); color: #fff; font-family: var(--font-family); cursor: pointer;
+            background: var(--secondary-color); color: #fff; font-family: var(--font-sans); cursor: pointer;
         }
+        .header-controls a {
+            color: #fff; text-decoration: none; font-weight: 500; margin-right: 15px;
+        }
+        
+        /* --- CHAT BOX & MESSAGES --- */
         .chat-box {
             flex-grow: 1; padding: 1.25rem; overflow-y: auto; display: flex;
             flex-direction: column; gap: 1rem;
@@ -43,37 +59,42 @@
             width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center;
             justify-content: center; font-size: 1.2rem; flex-shrink: 0;
         }
-        .bot-avatar { background-color: var(--primary-color); color: #fff; }
+        .bot-avatar { background-color: var(--primary-color); color: #fff; } /* Terracotta bot icon */
         .message-content {
             padding: 10px 15px; border-radius: 18px; line-height: 1.5;
             animation: fadeIn 0.3s ease-out; word-wrap: break-word;
         }
         .user-message .message-content {
-            background: var(--user-msg-bg); color: white; border-bottom-right-radius: 4px;
+            background: var(--primary-color); /* Terracotta background for user */
+            color: white; border-bottom-right-radius: 4px;
         }
         .bot-message .message-content {
-            background: var(--bot-msg-bg); color: #1f2937; border-bottom-left-radius: 4px;
+            background: var(--bot-msg-bg); color: var(--text-color); border-bottom-left-radius: 4px;
         }
+
+        /* --- INPUT AREA --- */
         .input-area {
             display: flex; align-items: center; border-top: 1px solid #e5e7eb;
             background: #fff; padding: 0.75rem;
         }
         .input-area input {
             flex-grow: 1; padding: 12px; border: 2px solid transparent; border-radius: 99px;
-            background: #f0f4f8; outline: none; font-size: 1rem; font-family: var(--font-family);
+            background: #f0f4f8; outline: none; font-size: 1rem; font-family: var(--font-sans);
             transition: border-color 0.3s;
         }
-        .input-area input:focus { border-color: var(--primary-color); }
+        .input-area input:focus { border-color: var(--secondary-color); }
         .input-area button {
-            background: var(--primary-color); color: white; border: none; padding: 0 20px;
-            margin-left: 8px; border-radius: 99px; cursor: pointer; transition: background-color 0.3s;
-            font-weight: 500; font-size: 1rem; height: 48px;
+            background: var(--primary-color); /* Terracotta Send Button */
+            color: white; border: none; padding: 0 20px; margin-left: 8px; border-radius: 99px;
+            cursor: pointer; transition: background-color 0.3s; font-weight: 500; font-size: 1rem; height: 48px;
         }
+        .input-area button:hover { background: #c9302c; } /* Darker terracotta hover */
         .mic-button {
             background: transparent; border: none; font-size: 1.5rem; cursor: pointer;
             color: #555; padding: 0 10px; transition: color 0.3s, transform 0.2s;
         }
-        .mic-button.is-listening { color: #e63946; animation: pulse 1.5s infinite; }
+        .mic-button.is-listening { color: var(--primary-color); animation: pulse 1.5s infinite; }
+        /* Animation keyframes remain the same */
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -102,7 +123,7 @@
                     <option value="gu-IN">ગુજરાતી (Gujarati)</option>
                     <option value="hi-IN">हिंदी (Hindi)</option>
                     <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
-                    <option value="ks-IN">कश्मीरी (Kashmiri)</option>
+                    <option value="ks-IN">کश्मीरी (Kashmiri)</option>
                     <option value="kok-IN">कोंकणी (Konkani)</option>
                     <option value="mai-IN">मैथिली (Maithili)</option>
                     <option value="ml-IN">മലയാളം (Malayalam)</option>
@@ -128,6 +149,7 @@
         </div>
     </div>
     <script>
+        // --- JavaScript Code (Functionality remains the same) ---
         const chatBox = document.getElementById("chatBox"), userInput = document.getElementById("userInput");
         const languageSelector = document.getElementById("language-selector"), micBtn = document.getElementById("mic-btn");
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -139,6 +161,7 @@
             recognition.onresult = (event) => { userInput.value = event.results[0][0].transcript; micBtn.classList.remove("is-listening"); sendMessage(); };
             recognition.onerror = (event) => { console.error("Speech recognition error:", event.error); micBtn.classList.remove("is-listening"); };
             recognition.onend = () => micBtn.classList.remove("is-listening");
+
             micBtn.addEventListener("click", () => {
                 if (micBtn.classList.contains("is-listening")) { recognition.stop(); } 
                 else { recognition.lang = languageSelector.value; recognition.start(); micBtn.classList.add("is-listening"); }
@@ -158,7 +181,7 @@
 
         function speak(text, lang) {
             if (speechSynthesis.speaking) speechSynthesis.cancel();
-            const cleanText = text.replace(/\*\*/g, ''); // Remove markdown for voice
+            const cleanText = text.replace(/\*\*/g, ''); 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = lang;
             speechSynthesis.speak(utterance);
@@ -168,7 +191,7 @@
             const text = userInput.value.trim(); if (!text) return;
             appendMessage(text, "user-message"); userInput.value = ""; appendMessage("...", "bot-message");
             try {
-                const response = await fetch(`/get-response?userMessage=${encodeURIComponent(text)}`);
+                const response = await fetch(`/chat/get-response?userMessage=${encodeURIComponent(text)}`);
                 const data = await response.json();
                 chatBox.removeChild(chatBox.lastChild);
                 appendMessage(data.botResponse, "bot-message");
@@ -192,7 +215,7 @@
         languageSelector.addEventListener('change', async (event) => {
             const selectedLang = event.target.value; setWelcomeMessage(selectedLang);
             const langCode = selectedLang.split('-')[0];
-            await fetch('/set-language', {
+            await fetch('/chat/set-language', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ language: langCode })
             });
@@ -203,7 +226,7 @@
         window.onload = async () => {
             const initialLang = languageSelector.value; setWelcomeMessage(initialLang);
             const langCode = initialLang.split('-')[0];
-            await fetch('/set-language', {
+            await fetch('/chat/set-language', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ language: langCode })
             });

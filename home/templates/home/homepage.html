@@ -53,7 +53,7 @@
         }
         .cta-button {
             background-color: var(--primary-color);
-            color: #fff;
+            color: #fff !important; /* Ensure text is white */
             padding: 10px 25px;
             border-radius: 50px;
             text-decoration: none;
@@ -68,9 +68,7 @@
             padding: 5rem 0;
             min-height: 80vh;
         }
-        .hero-text {
-            flex: 1;
-        }
+        .hero-text { flex: 1; }
         .hero-text h1 {
             font-family: var(--font-serif);
             font-size: 3.5rem;
@@ -78,29 +76,18 @@
             line-height: 1.2;
             margin-bottom: 1rem;
         }
-        .hero-text .highlight {
-            color: var(--primary-color);
-        }
+        .hero-text .highlight { color: var(--primary-color); }
         .hero-text p {
             font-size: 1.2rem;
             max-width: 500px;
             margin-bottom: 2rem;
             line-height: 1.6;
         }
-        .hero-image {
-            flex: 1;
-            text-align: center;
-        }
-        .hero-image img {
-            max-width: 500px;
-            border-radius: 20px;
-        }
+        .hero-image { flex: 1; text-align: center; }
+        .hero-image img { max-width: 500px; border-radius: 20px; }
 
         /* Features Section */
-        .features {
-            padding: 4rem 0;
-            background-color: #fff;
-        }
+        .features { padding: 4rem 0; background-color: #fff; }
         .section-title {
             text-align: center;
             font-family: var(--font-serif);
@@ -124,15 +111,8 @@
             transform: translateY(-10px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
         }
-        .feature-card .icon {
-            font-size: 3rem;
-            color: var(--accent-color);
-            margin-bottom: 1rem;
-        }
-        .feature-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
-        }
+        .feature-card .icon { font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem; }
+        .feature-card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
         .footer {
             background-color: var(--secondary-color);
             color: #fff;
@@ -147,12 +127,17 @@
         <div class="container navbar">
             <div class="logo">Gramin Suraksha Mitra</div>
             <nav class="nav-links">
-                <a href="#">Home</a>
-                <a href="#">Products</a>
-                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'homepage' %}">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                {% endif %}
                 <a href="{% url 'chat' %}" class="cta-button">Talk to Agent</a>
             </nav>
-        </div>
+            </div>
     </header>
 
     <main>
@@ -164,7 +149,6 @@
                     <a href="{% url 'chat' %}" class="cta-button" style="font-size: 1.2rem; padding: 15px 35px;">Start Your Conversation</a>
                 </div>
                 <div class="hero-image">
-                    <!-- Placeholder image reflecting rural India's progress -->
                     <img src="https://placehold.co/500x400/1e3a8a/FEFBF6?text=Secure+Future" alt="A family in rural India feeling secure">
                 </div>
             </div>
