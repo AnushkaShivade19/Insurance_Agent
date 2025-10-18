@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1e3a8a; /* A trustworthy deep blue */
-            --user-msg-bg: #3b82f6;   /* A friendly, lighter blue */
-            --bot-msg-bg: #e5e7eb;    /* A soft, neutral grey */
-            --bg-color: #f0f4f8;      /* A clean, light background */
+            --primary-color: #1e3a8a;
+            --user-msg-bg: #3b82f6;
+            --bot-msg-bg: #e5e7eb;
+            --bg-color: #f0f4f8;
             --font-family: 'Poppins', sans-serif;
         }
         * { box-sizing: border-box; }
@@ -114,6 +114,7 @@
         }
         .input-area {
             display: flex;
+            align-items: center;
             border-top: 1px solid #e5e7eb;
             background: #fff;
             padding: 0.75rem;
@@ -143,9 +144,33 @@
             transition: background-color 0.3s;
             font-weight: 500;
             font-size: 1rem;
+            height: 48px;
         }
         .input-area button:hover {
             background: #2563eb;
+        }
+
+        /* --- STYLES FOR THE MICROPHONE BUTTON --- */
+        .mic-button {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #555;
+            padding: 0 10px;
+            transition: color 0.3s, transform 0.2s;
+        }
+        .mic-button:hover {
+            color: var(--primary-color);
+        }
+        .mic-button.is-listening {
+            color: #e63946; /* Red color when listening */
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -158,31 +183,20 @@
         <div class="header-controls">
             <div class="header-title">Gramin Suraksha Mitra</div>
             <select id="language-selector">
-                <option value="en">English</option>
-                <option value="as">অসমীয়া (Assamese)</option>
-                <option value="bn">বাংলা (Bengali)</option>
-                <option value="brx">बोड़ो (Bodo)</option>
-                <option value="doi">डोगरी (Dogri)</option>
-                <option value="gu">ગુજરાતી (Gujarati)</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                <option value="ks">कश्मीरी (Kashmiri)</option>
-                <option value="kok">कोंकणी (Konkani)</option>
-                <option value="mai">मैथिली (Maithili)</option>
-                <option value="ml">മലയാളം (Malayalam)</option>
-                <option value="mni">মৈতৈলোন্ (Manipuri)</option>
-                <option value="mr">मराठी (Marathi)</option>
-                <option value="ne">नेपाली (Nepali)</option>
-                <option value="or">ଓଡ଼ିଆ (Odia)</option>
-                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-                <option value="sa">संस्कृतम् (Sanskrit)</option>
-                <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
-                <option value="sd">सिन्धी (Sindhi)</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-                <option value="ur">اردو (Urdu)</option>
-                
-            </select>
+                <option value="en-IN">English</option>
+                <option value="as-IN">অসমীয়া (Assamese)</option>
+                <option value="bn-IN">বাংলা (Bengali)</option>
+                <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+                <option value="hi-IN">हिंदी (Hindi)</option>
+                <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+                <option value="ml-IN">മലയാളം (Malayalam)</option>
+                <option value="mr-IN">मराठी (Marathi)</option>
+                <option value="or-IN">ଓଡ଼ିଆ (Odia)</option>
+                <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="ta-IN">தமிழ் (Tamil)</option>
+                <option value="te-IN">తెలుగు (Telugu)</option>
+                <option value="ur-IN">اردو (Urdu)</option>
+                </select>
         </div>
 
         <div class="chat-box" id="chatBox">
@@ -190,26 +204,68 @@
 
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Ask a question..." onkeypress="handleKeyPress(event)">
+            <button id="mic-btn" class="mic-button">🎤</button>
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <script>
+        // --- DOM Elements ---
         const chatBox = document.getElementById("chatBox");
         const userInput = document.getElementById("userInput");
         const languageSelector = document.getElementById("language-selector");
+        const micBtn = document.getElementById("mic-btn");
 
-        // Function to add a new message to the chat box
+        // --- Web Speech API Setup for Voice Input and Output ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        const speechSynthesis = window.speechSynthesis;
+
+        if (recognition) {
+            recognition.continuous = false;
+            recognition.lang = languageSelector.value;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                micBtn.classList.remove("is-listening");
+                sendMessage(); // Automatically send after successful recognition
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                micBtn.classList.remove("is-listening");
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove("is-listening");
+            };
+
+            micBtn.addEventListener("click", () => {
+                if (micBtn.classList.contains("is-listening")) {
+                    recognition.stop();
+                } else {
+                    recognition.lang = languageSelector.value; // Update lang just before starting
+                    recognition.start();
+                    micBtn.classList.add("is-listening");
+                }
+            });
+        } else {
+            micBtn.style.display = "none";
+            console.log("Speech Recognition is not supported in this browser.");
+        }
+
+        // --- Core Chat Functions ---
+
         function appendMessage(text, type) {
             const messageWrapper = document.createElement("div");
-            messageWrapper.className = type; // 'user-message' or 'bot-message'
-
+            messageWrapper.className = type;
             const messageRow = document.createElement("div");
             messageRow.className = "message-row";
-
             const messageContent = document.createElement("div");
             messageContent.className = "message-content";
-            messageContent.innerHTML = text; // Use innerHTML to render bold tags, etc.
+            messageContent.innerHTML = text;
 
             if (type === 'bot-message') {
                 const avatar = document.createElement("div");
@@ -223,37 +279,15 @@
             chatBox.appendChild(messageWrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-        
-        // Call this function when the page loads to set the initial welcome message
-        function setWelcomeMessage(lang) {
-            const welcomeMessages = {
-                'en': "Namaste! 🙏 I'm your insurance guide. Ask me to explain any insurance term in simple language.",
-                'hi': "नमस्ते! 🙏 मैं आपका बीमा गाइड हूँ। मैं आपकी कैसे मदद कर सकता हूँ?",
-                'mr': "नमस्कार! 🙏 मी तुमचा विमा मार्गदर्शक आहे. मी तुम्हाला कशी मदत करू शकेन?",
-                'bn': "নমস্কার! 🙏 আমি আপনার বীমা গাইড। আমি আপনাকে কিভাবে সাহায্য করতে পারি?",
-                'te': "నమస్కారం! 🙏 నేను మీ భీమా మార్గదర్శిని. నేను మీకు ఎలా సహాయపడగలను?",
-                'ta': "வணக்கம்! 🙏 நான் உங்கள் காப்பீட்டு வழிகாட்டி. நான் உங்களுக்கு எப்படி உதவ முடியும்?",
-                'ml': "നമസ്കാരം! 🙏 ഞാൻ നിങ്ങളുടെ ഇൻഷുറൻസ് ഗൈഡാണ്. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാൻ കഴിയും?",
-                'as': "নমস্কাৰ! 🙏 মই আপোনাৰ বীমা সহায়ক। মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
-            };
-            chatBox.innerHTML = ''; // Clear previous messages
-            appendMessage(welcomeMessages[lang] || welcomeMessages['en'], 'bot-message');
-        }
 
-        // --- Event Listeners ---
-        languageSelector.addEventListener('change', async (event) => {
-            const selectedLang = event.target.value;
-            setWelcomeMessage(selectedLang); // Update UI immediately
-
-            await fetch('/set-language', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ language: selectedLang })
-            });
-        });
-
-        function handleKeyPress(e) {
-            if (e.key === "Enter") sendMessage();
+        function speak(text, lang) {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel(); // Stop any previous speech
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 1.0; // Normal speed
+            speechSynthesis.speak(utterance);
         }
 
         async function sendMessage() {
@@ -262,7 +296,7 @@
 
             appendMessage(text, "user-message");
             userInput.value = "";
-            appendMessage("...", "bot-message"); // Typing indicator
+            appendMessage("...", "bot-message");
 
             try {
                 const response = await fetch(`/get-response?userMessage=${encodeURIComponent(text)}`);
@@ -270,13 +304,48 @@
                 
                 chatBox.removeChild(chatBox.lastChild); // Remove typing indicator
                 appendMessage(data.botResponse, "bot-message");
+                
+                // Speak the bot's response
+                speak(data.botResponse, languageSelector.value);
+
             } catch (error) {
                 chatBox.removeChild(chatBox.lastChild);
                 appendMessage("⚠️ Sorry, something went wrong. Please try again.", "bot-message");
             }
         }
-        
-        // Initialize with the default welcome message
+
+        function setWelcomeMessage(lang) {
+            const welcomeMessages = {
+                'en-IN': "Namaste! 🙏 I'm your insurance guide. Ask me to explain any insurance term.",
+                'hi-IN': "नमस्ते! 🙏 मैं आपका बीमा गाइड हूँ। कोई भी बीमा शब्द पूछें।",
+                'mr-IN': "नमस्कार! 🙏 मी तुमचा विमा मार्गदर्शक आहे. कोणताही विमा शब्द विचारा.",
+                'bn-IN': "নমস্কার! 🙏 আমি আপনার বীমা গাইড। কোনো বীমা শব্দ জিজ্ঞাসা করুন।",
+                'te-IN': "నమస్కారం! 🙏 నేను మీ భీమా మార్గదర్శిని. ఏదైనా భీమా పదం అడగండి.",
+                'ta-IN': "வணக்கம்! 🙏 நான் உங்கள் காப்பீட்டு வழிகாட்டி. எந்த காப்பீட்டுச் சொல்லையும் கேளுங்கள்.",
+                'ml-IN': "നമസ്കാരം! 🙏 ഞാൻ നിങ്ങളുടെ ഇൻഷുറൻസ് ഗൈഡാണ്. ഏതെങ്കിലും ഇൻഷുറൻസ് പദം ചോദിക്കൂ.",
+                'as-IN': "নমস্কাৰ! 🙏 মই আপোনাৰ বীমা সহায়ক। যিকোনো বীমা শব্দ সোধক।"
+            };
+            chatBox.innerHTML = '';
+            appendMessage(welcomeMessages[lang] || welcomeMessages['en-IN'], 'bot-message');
+        }
+
+        // --- Event Listeners and Initializer ---
+
+        languageSelector.addEventListener('change', async (event) => {
+            const selectedLang = event.target.value;
+            setWelcomeMessage(selectedLang);
+
+            await fetch('/set-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: selectedLang.split('-')[0] }) // Send 'hi' instead of 'hi-IN'
+            });
+        });
+
+        function handleKeyPress(e) {
+            if (e.key === "Enter") sendMessage();
+        }
+
         window.onload = () => {
             setWelcomeMessage(languageSelector.value);
         };

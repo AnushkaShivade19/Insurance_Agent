@@ -5,28 +5,39 @@ import requests
 import os
 import json
 
-# A dictionary to map language codes to their full names for the AI prompt
+# Dictionary mapping language codes to their full names for the AI prompt
 LANGUAGES = {
     'en': 'English',
-    'hi': 'Hindi',
-    'mr': 'Marathi',
-    'bn': 'Bengali',
-    'te': 'Telugu',
-    'ta': 'Tamil',
-    'ml': 'Malayalam',
     'as': 'Assamese',
+    'bn': 'Bengali',
+    'brx': 'Bodo',
+    'doi': 'Dogri',
+    'gu': 'Gujarati',
+    'hi': 'Hindi',
+    'kn': 'Kannada',
+    'ks': 'Kashmiri',
+    'kok': 'Konkani',
+    'mai': 'Maithili',
+    'ml': 'Malayalam',
+    'mni': 'Manipuri',
+    'mr': 'Marathi',
+    'ne': 'Nepali',
+    'or': 'Odia',
+    'pa': 'Punjabi',
+    'sa': 'Sanskrit',
+    'sat': 'Santali',
+    'sd': 'Sindhi',
+    'ta': 'Tamil',
+    'te': 'Telugu',
+    'ur': 'Urdu'
 }
 
-# A dictionary for translated welcome messages
+# Dictionary for translated welcome messages (can be expanded)
 WELCOME_MESSAGES = {
     'en': "Namaste! 🙏 I'm your insurance guide. How can I help you today?",
     'hi': "नमस्ते! 🙏 मैं आपका बीमा गाइड हूँ। मैं आपकी कैसे मदद कर सकता हूँ?",
     'mr': "नमस्कार! 🙏 मी तुमचा विमा मार्गदर्शक आहे. मी तुम्हाला कशी मदत करू शकेन?",
-    'bn': "নমস্কার! 🙏 আমি আপনার বীমা গাইড। আমি আপনাকে কিভাবে সাহায্য করতে পারি?",
-    'te': "నమస్కారం! 🙏 నేను మీ భీమా మార్గదర్శిని. నేను మీకు ఎలా సహాయపడగలను?",
-    'ta': "வணக்கம்! 🙏 நான் உங்கள் காப்பீட்டு வழிகாட்டி. நான் உங்களுக்கு எப்படி உதவ முடியும்?",
-    'ml': "നമസ്കാരം! 🙏 ഞാൻ നിങ്ങളുടെ ഇൻഷുറൻസ് ഗൈഡാണ്. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാൻ കഴിയും?",
-    'as': "নমস্কাৰ! 🙏 মই আপোনাৰ বীমা সহায়ক। মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
+    # Add other welcome messages as needed
 }
 
 def chat_view(request):
@@ -36,7 +47,7 @@ def chat_view(request):
         del request.session['history']
     return render(request, 'chatbot/chat.html')
 
-@csrf_exempt # Use this for simplicity in development
+@csrf_exempt
 def set_language(request):
     """Sets the user's chosen language in the session."""
     if request.method == 'POST':
@@ -44,7 +55,6 @@ def set_language(request):
         lang_code = data.get('language', 'en')
         request.session['language'] = lang_code
         
-        # Clear history when language changes
         if 'history' in request.session:
             del request.session['history']
             
@@ -57,7 +67,6 @@ def get_response(request):
     user_message = request.GET.get('userMessage', '')
     api_key = os.getenv("GEMINI_API_KEY")
 
-    # Get language from session, default to English
     lang_code = request.session.get('language', 'en')
     language_name = LANGUAGES.get(lang_code, 'English')
 
@@ -65,7 +74,6 @@ def get_response(request):
     headers = {"Content-Type": "application/json"}
     history = request.session.get('history', [])
 
-    # The AI is now commanded to use the selected language
     prompt_instructions = f"""
     You are an insurance assistant for rural users named 'Gramin Suraksha Mitra'.
 
