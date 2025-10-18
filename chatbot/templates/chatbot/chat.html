@@ -38,15 +38,27 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        .chat-header {
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
             background: var(--primary-color);
             color: white;
-            padding: 1rem;
-            text-align: center;
+            flex-shrink: 0;
+        }
+        .header-title {
             font-weight: 600;
             font-size: 1.1rem;
-            letter-spacing: 0.5px;
-            flex-shrink: 0;
+        }
+        #language-selector {
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid #fff;
+            background: var(--primary-color);
+            color: #fff;
+            font-family: var(--font-family);
+            cursor: pointer;
         }
         .chat-box {
             flex-grow: 1;
@@ -60,6 +72,7 @@
             display: flex;
             gap: 10px;
             align-items: flex-end;
+            max-width: 90%;
         }
         .bot-message .message-row {
             align-self: flex-start;
@@ -87,7 +100,6 @@
             border-radius: 18px;
             line-height: 1.5;
             animation: fadeIn 0.3s ease-out;
-            max-width: 250px;
             word-wrap: break-word;
         }
         .user-message .message-content {
@@ -102,9 +114,9 @@
         }
         .input-area {
             display: flex;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #e5e7eb;
             background: #fff;
-            padding: 0.5rem;
+            padding: 0.75rem;
         }
         .input-area input {
             flex-grow: 1;
@@ -143,17 +155,39 @@
 </head>
 <body>
     <div class="chat-container">
-        <div class="chat-header">Gramin Suraksha Mitra</div>
-        <div class="chat-box" id="chatBox">
-            <div class="bot-message">
-                <div class="message-row">
-                    <div class="avatar bot-avatar">🤖</div>
-                    <div class="message-content">
-                        Namaste! 🙏 I'm your insurance guide. Ask me to explain any insurance term in simple language.
-                    </div>
-                </div>
-            </div>
+        <div class="header-controls">
+            <div class="header-title">Gramin Suraksha Mitra</div>
+            <select id="language-selector">
+                <option value="en">English</option>
+                <option value="as">অসমীয়া (Assamese)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="brx">बोड़ो (Bodo)</option>
+                <option value="doi">डोगरी (Dogri)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ks">कश्मीरी (Kashmiri)</option>
+                <option value="kok">कोंकणी (Konkani)</option>
+                <option value="mai">मैथिली (Maithili)</option>
+                <option value="ml">മലയാളം (Malayalam)</option>
+                <option value="mni">মৈতৈলোন্ (Manipuri)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="ne">नेपाली (Nepali)</option>
+                <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="sa">संस्कृतम् (Sanskrit)</option>
+                <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                <option value="sd">सिन्धी (Sindhi)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="ur">اردو (Urdu)</option>
+                
+            </select>
         </div>
+
+        <div class="chat-box" id="chatBox">
+            </div>
+
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Ask a question..." onkeypress="handleKeyPress(event)">
             <button onclick="sendMessage()">Send</button>
@@ -163,7 +197,9 @@
     <script>
         const chatBox = document.getElementById("chatBox");
         const userInput = document.getElementById("userInput");
+        const languageSelector = document.getElementById("language-selector");
 
+        // Function to add a new message to the chat box
         function appendMessage(text, type) {
             const messageWrapper = document.createElement("div");
             messageWrapper.className = type; // 'user-message' or 'bot-message'
@@ -187,6 +223,34 @@
             chatBox.appendChild(messageWrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+        
+        // Call this function when the page loads to set the initial welcome message
+        function setWelcomeMessage(lang) {
+            const welcomeMessages = {
+                'en': "Namaste! 🙏 I'm your insurance guide. Ask me to explain any insurance term in simple language.",
+                'hi': "नमस्ते! 🙏 मैं आपका बीमा गाइड हूँ। मैं आपकी कैसे मदद कर सकता हूँ?",
+                'mr': "नमस्कार! 🙏 मी तुमचा विमा मार्गदर्शक आहे. मी तुम्हाला कशी मदत करू शकेन?",
+                'bn': "নমস্কার! 🙏 আমি আপনার বীমা গাইড। আমি আপনাকে কিভাবে সাহায্য করতে পারি?",
+                'te': "నమస్కారం! 🙏 నేను మీ భీమా మార్గదర్శిని. నేను మీకు ఎలా సహాయపడగలను?",
+                'ta': "வணக்கம்! 🙏 நான் உங்கள் காப்பீட்டு வழிகாட்டி. நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+                'ml': "നമസ്കാരം! 🙏 ഞാൻ നിങ്ങളുടെ ഇൻഷുറൻസ് ഗൈഡാണ്. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാൻ കഴിയും?",
+                'as': "নমস্কাৰ! 🙏 মই আপোনাৰ বীমা সহায়ক। মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
+            };
+            chatBox.innerHTML = ''; // Clear previous messages
+            appendMessage(welcomeMessages[lang] || welcomeMessages['en'], 'bot-message');
+        }
+
+        // --- Event Listeners ---
+        languageSelector.addEventListener('change', async (event) => {
+            const selectedLang = event.target.value;
+            setWelcomeMessage(selectedLang); // Update UI immediately
+
+            await fetch('/set-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: selectedLang })
+            });
+        });
 
         function handleKeyPress(e) {
             if (e.key === "Enter") sendMessage();
@@ -204,14 +268,18 @@
                 const response = await fetch(`/get-response?userMessage=${encodeURIComponent(text)}`);
                 const data = await response.json();
                 
-                // Remove typing indicator before adding the real response
-                chatBox.removeChild(chatBox.lastChild); 
+                chatBox.removeChild(chatBox.lastChild); // Remove typing indicator
                 appendMessage(data.botResponse, "bot-message");
             } catch (error) {
                 chatBox.removeChild(chatBox.lastChild);
                 appendMessage("⚠️ Sorry, something went wrong. Please try again.", "bot-message");
             }
         }
+        
+        // Initialize with the default welcome message
+        window.onload = () => {
+            setWelcomeMessage(languageSelector.value);
+        };
     </script>
 </body>
 </html>

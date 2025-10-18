@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.chat_view, name='chat'),
     # This URL will be used by our JavaScript to get the bot's response
     path('get-response', views.get_response, name='get_response'),
+    path('set-language', views.set_language, name='set_language'),
 ]
