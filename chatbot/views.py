@@ -6,8 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import requests, os, json, datetime
 
+# Import models and recommendation logic
 from insurance.models import Policy, InsuranceProduct
 from .recommendation_logic import generate_recommendations
+
+# --- DICTIONARIES FOR LANGUAGE AND SURVEY ---
 
 LANGUAGES = {
     'en': 'English', 'as': 'Assamese', 'bn': 'Bengali', 'brx': 'Bodo', 'doi': 'Dogri', 'gu': 'Gujarati', 'hi': 'Hindi',
@@ -22,6 +25,8 @@ SURVEY_QUESTIONS = {
     'mr': { 1: "तुम्ही कोणाचा विमा काढू इच्छिता?", 2: "तुमचा मुख्य व्यवसाय काय आहे?", 3: "तुम्ही कोणत्या वयोगटातील आहात?", 4: "तुमच्याकडे वाहन आहे का?", },
     # Add all other survey question translations here
 }
+
+# --- CORE VIEWS ---
 
 @login_required
 def chat_view(request):
@@ -39,6 +44,9 @@ def get_response(request):
     
     start_survey_keywords = ['find a policy', 'recommend', 'suggest', 'पॉलिसी ढूंढो', 'पॉलिसी शोधा', 'शिफारस']
     
+    history = request.session.get('history', [])
+    prompt = ""
+
     if any(keyword in user_message.lower() for keyword in start_survey_keywords) and 'survey_state' not in request.session:
         request.session['survey_state'] = {'step': 1, 'answers': {}}
         return JsonResponse({"botResponse": questions[1]})
@@ -51,10 +59,12 @@ def get_response(request):
         if current_step >= len(questions):
             recommended_types = generate_recommendations(state['answers'])
             matching_products = InsuranceProduct.objects.filter(product_type__in=recommended_types, is_active=True)
-            product_info = "Based on the user's answers, the following are suitable:\n"
+            
+            product_info = "Based on your answers, here are some suitable insurance types:\n"
             if matching_products:
                 for product in matching_products: product_info += f"- **{product.name}**: {product.description}\n"
             else: product_info = "Based on your answers, Health Insurance is a good start."
+            
             language_name = LANGUAGES.get(lang_code, 'English')
             prompt = f"Present this recommendation conversationally. Explain WHY these are good choices. Respond ONLY in **{language_name}** and be concise.\n\nRecommendation:\n{product_info}"
             del request.session['survey_state']
@@ -66,12 +76,13 @@ def get_response(request):
         user_policies = Policy.objects.filter(user=user)
         policy_context = "User's policy info:\n" if user_policies else "This user has no policies."
         for p in user_policies: policy_context += f"- Policy #{p.policy_number} ({p.product.name}): Status is {p.get_status_display()}, Expires on {p.expiry_date.strftime('%d-%b-%Y')}.\n"
+        
         language_name = LANGUAGES.get(lang_code, 'English')
         prompt = f"You are 'Gramin Suraksha Mitra'. CONTEXT: {policy_context}. RULES: 1. If asked a personal question, answer using ONLY the CONTEXT. 2. If asked a general question, IGNORE context. 3. Respond ONLY in **{language_name}** and be concise. User's Question: {user_message}"
-        history = request.session.get('history', [])
 
+    # --- API CALL FIX ---
+    # Using gemini-pro which is compatible with the v1beta endpoint structure we confirmed works.
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
     contents = history + [{"parts": [{"text": prompt}]}]
     data = {"contents": contents}
 
@@ -79,13 +90,16 @@ def get_response(request):
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         bot_message = response.json()['candidates'][0]['content']['parts'][0]['text']
-        if 'history' in locals() and history is not None:
+        
+        if history is not None:
              history.append({"parts": [{"text": user_message}]}); history.append({"parts": [{"text": bot_message}]})
              request.session['history'] = history[-8:]
     except Exception as e:
         print("HTTP error:", e); bot_message = "I'm facing network issues. Please try again."
     
     return JsonResponse({"botResponse": bot_message})
+
+# --- HELPER & AUTH VIEWS ---
 
 @csrf_exempt
 @login_required
@@ -100,7 +114,7 @@ def set_language(request):
 def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
-        if form.is_valid(): user = form.save(); login(request, user); return redirect('chat')
+        if form.is_valid(): user = form.save(); login(request, user); return redirect('dashboard')
     else: form = UserCreationForm()
     return render(request, 'chatbot/register.html', {'form': form})
 
@@ -109,8 +123,11 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
-            if user is not None: login(request, user); return redirect('chat')
-    else: form = AuthenticationForm()
+            if user is not None:
+                login(request, user)
+                return redirect('dashboard') # Redirects to dashboard after successful login
+    else:
+        form = AuthenticationForm()
     return render(request, 'chatbot/login.html', {'form': form})
 
 def logout_view(request):

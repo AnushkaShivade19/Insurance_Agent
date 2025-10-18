@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Purchase - Gramin Suraksha Mitra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #D9534F; --secondary-color: #1e3a8a; --accent-color: #F0AD4E;
+            --bg-color: #FEFBF6; --text-color: #3D3D3D; --font-sans: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-sans); margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; flex-grow: 1; }
+        .page-header { padding: 3rem 0 1rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 0.5rem; }
+        
+        .form-card {
+            background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 2.5rem; margin-top: 2rem; margin-bottom: 4rem;
+        }
+        .form-card h2 { color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 1.5rem; }
+        
+        form label { display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
+        form input[type="number"], form input[type="date"], form select {
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem;
+            font-family: var(--font-sans);
+        }
+        .submit-btn {
+            background-color: var(--secondary-color); color: #fff; padding: 12px 25px;
+            border-radius: 5px; border: none; cursor: pointer; font-size: 1.1rem; margin-top: 1.5rem;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover { background-color: #1a2c6d; }
+        .errorlist { color: var(--primary-color); list-style: none; padding: 0; font-weight: 500; }
+
+        .footer { background-color: var(--secondary-color); color: #fff; text-align: center; padding: 2rem 0; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container navbar">
+            <div class="logo">Gramin Suraksha Mitra</div>
+            <nav class="nav-links">
+                <a href="{% url 'homepage' %}">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                <a href="{% url 'agents' %}">Agents</a>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'logout' %}">Logout</a>
+                <a href="{% url 'chat' %}" class="cta-button">Talk to Agent</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Complete Your Policy Purchase</h1>
+            <p>Please confirm your coverage details below to finalize your financial safety net.</p>
+        </div>
+
+        <div class="form-card">
+            <h2>Policy Details</h2>
+            
+            {% if form.errors %}
+                <ul class="errorlist">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {{ form.product.label_tag }}
+                {{ form.product }}
+                
+                {{ form.sum_assured.label_tag }}
+                {{ form.sum_assured }}
+                
+                {{ form.start_date.label_tag }}
+                {{ form.start_date }}
+                
+                <button type="submit" class="submit-btn">Finalize Purchase</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Gramin Suraksha Mitra. Securing Rural India's Future.</p>
+    </footer>
+</body>
+</html>

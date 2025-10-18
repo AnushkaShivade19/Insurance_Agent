@@ -25,7 +25,7 @@
             border-radius: 50px; text-decoration: none; transition: background-color 0.3s;
         }
         .dashboard-header { padding: 3rem 0; text-align: center; }
-        .dashboard-header h1 { font-family: var(--font-serif); font-size: 2.8rem; color: var(--secondary-color); margin-bottom: 0.5rem; }
+        .dashboard-header h1 { font-family: var(--font-serif); font-size: 2.8rem; color: var(--secondary-color); margin-bottom: 0.2rem; } /* Reduced margin */
         .section { margin-bottom: 3rem; }
         .section-title { font-size: 1.8rem; font-weight: 600; color: var(--secondary-color); margin-bottom: 1.5rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem; }
         .policy-grid, .claim-grid { 
@@ -46,7 +46,6 @@
             padding: 4px 12px; border-radius: 20px; color: #fff; font-size: 0.9rem;
             font-weight: 500; text-transform: capitalize;
         }
-        /* Claim status badges */
         .status-ACTIVE { background-color: #5CB85C; } 
         .status-EXPIRED { background-color: #777; }
         .status-FILED, .status-IN_REVIEW { background-color: var(--accent-color); }
@@ -64,6 +63,7 @@
                 <a href="{% url 'homepage' %}">Home</a>
                 <a href="{% url 'products' %}">Products</a>
                 <a href="{% url 'agents' %}">Agents</a>
+                <a href="{% url 'knowledge_hub' %}">Learn</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}">Dashboard</a>
                     <a href="{% url 'logout' %}">Logout</a>
@@ -78,7 +78,18 @@
     <main class="container">
         <div class="dashboard-header">
             <h1>Welcome, {{ user.first_name|default:user.username }}!</h1>
+            
+            <a href="{% url 'profile' %}" style="color: var(--secondary-color); font-weight: 500; text-decoration: none; display: block; margin-bottom: 0.5rem;">(Manage Profile Details)</a>
+
             <p>Here is an overview of your insurance policies and claims.</p>
+            
+            {% for policy in policies %}
+                {% if policy.is_due_for_renewal %}
+                <div style="background-color: var(--accent-color); color: var(--text-color); padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: 600;">
+                    ⚠️ **URGENT:** Your Policy #{{ policy.policy_number }} ({{ policy.product.name }}) is expiring on {{ policy.expiry_date|date:"d M Y" }}. Please renew now!
+                </div>
+                {% endif %}
+            {% endfor %}
         </div>
 
         <section class="section">

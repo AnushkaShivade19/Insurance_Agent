@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { /* ... (CSS Variables) ... */ }
+        body { /* ... */ }
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; flex-grow: 1; }
+        .page-header { padding: 3rem 0 1rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 0.5rem; }
+        
+        .form-card { background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2.5rem; margin-top: 2rem; margin-bottom: 4rem; }
+        .form-card h2 { color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 1.5rem; }
+        
+        form label { display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
+        form input[type="text"], form input[type="date"], form textarea {
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem;
+            font-family: var(--font-sans);
+        }
+        form textarea { resize: vertical; }
+        .submit-btn {
+            background-color: var(--secondary-color); color: #fff; padding: 12px 25px;
+            border-radius: 5px; border: none; cursor: pointer; font-size: 1.1rem; margin-top: 1.5rem;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover { background-color: #1a2c6d; }
+        .errorlist { color: var(--primary-color); list-style: none; padding: 0; font-weight: 500; }
+        /* ... (Navbar and Footer styles should be added as in other templates) ... */
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container navbar">
+            </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Manage Your Profile</h1>
+            <p>Update your personal and contact details.</p>
+        </div>
+
+        <div class="form-card">
+            <h2>Your Details</h2>
+            
+            {% if form.errors %}
+                {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {{ form.as_p }} <button type="submit" class="submit-btn">Update Profile</button>
+            </form>
+        </div>
+    </main>
+
+    </body>
+</html>

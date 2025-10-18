@@ -1,19 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
+from datetime import timedelta
 # ======== 1. USER MANAGEMENT MODELS ========
 
 class Profile(models.Model):
-    """
-    Extends Django's built-in User to store extra personal information.
-    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    address = models.CharField(max_length=255, help_text="Full address for communication")
-    phone_number = models.CharField(max_length=15, unique=True, help_text="10-digit mobile number")
-    date_of_birth = models.DateField()
-    # Storing sensitive information like Aadhar should be done with encryption in a real product.
-    # For now, a simple text field is a placeholder.
+    address = models.CharField(max_length=255, help_text="Full address for communication", blank=True, null=True) # ADD null=True, blank=True
+    phone_number = models.CharField(max_length=15, unique=True, help_text="10-digit mobile number", blank=True, null=True) # ADD null=True, blank=True
+    date_of_birth = models.DateField(blank=True, null=True) # <-- FIX: ADD null=True, blank=True
     aadhar_number = models.CharField(max_length=12, unique=True, blank=True, null=True)
 
     def __str__(self):
@@ -57,6 +52,18 @@ class Policy(models.Model):
         ('CANCELLED', 'Cancelled'),
         ('PENDING_APPROVAL', 'Pending Approval'),
     ]
+    @property
+    def is_due_for_renewal(self):
+        # Checks if the expiry date is within 30 days and the status is ACTIVE
+        today = timezone.now().date()
+        thirty_days_later = today + timedelta(days=30)
+        
+        return (self.expiry_date >= today and 
+                self.expiry_date <= thirty_days_later and
+                self.status == 'ACTIVE')
+
+    def __str__(self):
+        return f"Policy {self.policy_number} for {self.user.username}"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="policies")
     product = models.ForeignKey(InsuranceProduct, on_delete=models.PROTECT, help_text="The type of product this policy is based on.")

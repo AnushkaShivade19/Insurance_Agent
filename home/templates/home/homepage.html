@@ -7,129 +7,77 @@
     <title>Gramin Suraksha Mitra - Your Rural Insurance Partner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #D9534F; /* A warm, earthy terracotta */
-            --secondary-color: #1e3a8a; /* Your existing deep blue for trust */
-            --accent-color: #F0AD4E; /* A vibrant marigold yellow */
-            --bg-color: #FEFBF6;
+            --primary-color: #D9534F; /* Terracotta Red */
+            --secondary-color: #1e3a8a; /* Indigo Blue */
+            --accent-color: #F0AD4E; /* Marigold Yellow */
+            --bg-color: #FFFDF5; /* Warm Off-White */
             --text-color: #3D3D3D;
             --font-serif: 'Lora', serif;
             --font-sans: 'Poppins', sans-serif;
         }
         body {
-            font-family: var(--font-sans);
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23EAEAEA' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            font-family: var(--font-sans); margin: 0; background-color: var(--bg-color); color: var(--text-color);
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23EAEAEA' fill-opacity='0.3'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-5.523 0-10-4.477-10-10zm0-40c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-5.523 0-10-4.477-10-10zM10 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-5.523 0-10-4.477-10-10zm0-40c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-5.523 0-10-4.477-10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        /* Navigation Bar */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 0;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0;
+            background-color: #fff; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
         }
         .navbar .logo {
-            font-family: var(--font-serif);
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--secondary-color);
+            font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700;
+            color: var(--secondary-color); text-decoration: none;
         }
         .nav-links a {
-            margin-left: 2rem;
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
+            margin-left: 1.5rem; text-decoration: none; color: var(--text-color); font-weight: 500; transition: color 0.2s;
         }
+        .nav-links a:hover { color: var(--primary-color); }
         .cta-button {
-            background-color: var(--primary-color);
-            color: #fff !important; /* Ensure text is white */
-            padding: 10px 25px;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: background-color 0.3s;
+            background-color: var(--primary-color); color: #fff !important; padding: 10px 25px;
+            border-radius: 50px; text-decoration: none; transition: background-color 0.3s; margin-left: 2rem;
         }
         .cta-button:hover { background-color: #c9302c; }
-
-        /* Hero Section */
-        .hero {
-            display: flex;
-            align-items: center;
-            padding: 5rem 0;
-            min-height: 80vh;
-        }
+        .hero { display: flex; align-items: center; padding: 6rem 0; min-height: 80vh; }
         .hero-text { flex: 1; }
         .hero-text h1 {
-            font-family: var(--font-serif);
-            font-size: 3.5rem;
-            color: var(--secondary-color);
-            line-height: 1.2;
-            margin-bottom: 1rem;
+            font-family: var(--font-serif); font-size: 4rem;
+            color: var(--secondary-color); line-height: 1.1; margin-bottom: 1.5rem;
         }
         .hero-text .highlight { color: var(--primary-color); }
-        .hero-text p {
-            font-size: 1.2rem;
-            max-width: 500px;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
+        .hero-text p { font-size: 1.3rem; max-width: 550px; margin-bottom: 2.5rem; line-height: 1.6; }
         .hero-image { flex: 1; text-align: center; }
-        .hero-image img { max-width: 500px; border-radius: 20px; }
-
-        /* Features Section */
-        .features { padding: 4rem 0; background-color: #fff; }
+        .hero-image img { max-width: 100%; height: auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(30, 58, 138, 0.2); }
+        .section { padding: 5rem 0; }
         .section-title {
-            text-align: center;
-            font-family: var(--font-serif);
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            color: var(--secondary-color);
+            text-align: center; font-family: var(--font-serif); font-size: 2.8rem;
+            margin-bottom: 4rem; color: var(--secondary-color);
         }
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+        .how-it-works .steps { display: flex; justify-content: space-around; text-align: center; gap: 2rem; }
+        .step .icon { font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem; }
+        .step h3 { font-size: 1.5rem; color: var(--secondary-color); }
+        .testimonial { background: #fff; padding: 5rem 0; text-align: center; }
+        .testimonial blockquote {
+            font-family: var(--font-serif); font-size: 1.8rem; max-width: 800px; margin: 0 auto 1.5rem;
+            line-height: 1.5; color: var(--secondary-color);
         }
-        .feature-card {
-            text-align: center;
-            padding: 2rem;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-        }
-        .feature-card .icon { font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem; }
-        .feature-card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
-        .footer {
-            background-color: var(--secondary-color);
-            color: #fff;
-            text-align: center;
-            padding: 2rem 0;
-            margin-top: 4rem;
-        }
+        .testimonial cite { font-style: normal; font-weight: 600; color: var(--text-color); }
+        .final-cta { background: var(--secondary-color); color: #fff; padding: 5rem 0; text-align: center; }
+        .final-cta h2 { font-family: var(--font-serif); font-size: 2.5rem; margin-bottom: 2rem; }
+        .footer { background-color: #1a2c6d; color: #eee; text-align: center; padding: 2.5rem 0; }
     </style>
 </head>
 <body>
     <header>
         <div class="container navbar">
-            <div class="logo">Gramin Suraksha Mitra</div>
+            <a href="{% url 'homepage' %}" class="logo">Gramin Suraksha Mitra</a>
             <nav class="nav-links">
-                <a href="{% url 'homepage' %}">Home</a>
                 <a href="{% url 'products' %}">Products</a>
-                <a href="{% url 'agents' %}">Agents</a> <a href="{% url 'knowledge_hub' %}">Learn</a> {% if user.is_authenticated %}
+                <a href="{% url 'agents' %}">Agents</a>
+                <a href="{% url 'knowledge_hub' %}">Learn</a>
+                {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}">Dashboard</a>
                     <a href="{% url 'logout' %}">Logout</a>
                 {% else %}
@@ -144,48 +92,60 @@
         <section class="hero">
             <div class="container hero">
                 <div class="hero-text">
-                    <h1>Your <span class="highlight">Trusted Friend</span> in Financial Security.</h1>
-                    <p>Simple, clear, and reliable insurance advice for rural India, right at your fingertips. Get personalized help in your own language.</p>
+                    <h1>Financial Security,<br><span class="highlight">Rooted in Trust.</span></h1>
+                    <p>Your personal guide to understanding and choosing the right insurance. Simple advice, in your own language, for a secure future.</p>
                     <a href="{% url 'chat' %}" class="cta-button" style="font-size: 1.2rem; padding: 15px 35px;">Start Your Conversation</a>
                 </div>
                 <div class="hero-image">
-                    <img src="https://placehold.co/500x400/1e3a8a/FEFBF6?text=Secure+Future" alt="A family in rural India feeling secure">
+                    [Image of a happy rural Indian family feeling secure]
                 </div>
             </div>
         </section>
 
-        <section class="features">
+        <section class="section how-it-works">
             <div class="container">
-                <h2 class="section-title">How We Help You</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
+                <h2 class="section-title">Three Simple Steps to Security</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="icon">💬</div>
+                        <h3>1. Ask a Question</h3>
+                        <p>Talk to our friendly AI agent in your language. Ask about any policy or term.</p>
+                    </div>
+                    <div class="step">
                         <div class="icon">💡</div>
-                        <h3>Clear Education</h3>
-                        <p>We explain complex insurance terms in simple, easy-to-understand language.</p>
+                        <h3>2. Get Clear Advice</h3>
+                        <p>Receive simple, honest recommendations based on your unique needs through a quick survey.</p>
                     </div>
-                    <div class="feature-card">
-                        <div class="icon">🗣️</div>
-                        <h3>Voice & Language Support</h3>
-                        <p>Talk to our agent in your own regional language, using your voice or text.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🎯</div>
-                        <h3>Personalized Advice</h3>
-                        <p>Get recommendations for the right policy based on your unique needs and goals.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">📄</div>
-                        <h3>Policy Management</h3>
-                        <p>Check your policy status, expiry dates, and premium amounts anytime, instantly.</p>
+                    <div class="step">
+                        <div class="icon">🛡️</div>
+                        <h3>3. Secure Your Future</h3>
+                        <p>Connect with local agents, manage your policies, and file claims, all in one place.</p>
                     </div>
                 </div>
+            </div>
+        </section>
+        
+        <section class="section testimonial">
+            <div class="container">
+                <blockquote>
+                    “Finally, a service that speaks our language. I understood my health policy for the first time and even found a local agent in my own village.”
+                </blockquote>
+                <cite>— Ramesh Kumar, Farmer from Maharashtra</cite>
+                [Image of a confident Indian farmer using a smartphone in his field]
+            </div>
+        </section>
+        
+        <section class="section final-cta">
+            <div class="container">
+                <h2>Ready to Secure Your Family's Future?</h2>
+                <a href="{% url 'chat' %}" class="cta-button" style="font-size: 1.3rem; padding: 18px 40px; background-color: var(--accent-color); color: var(--text-color);">Talk to Your Mitra Now</a>
             </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 Gramin Suraksha Mitra. Securing Rural India's Future.</p>
+            <p>&copy; 2025 Gramin Suraksha Mitra. Securing Rural India's Future, One Family at a Time.</p>
         </div>
     </footer>
 </body>

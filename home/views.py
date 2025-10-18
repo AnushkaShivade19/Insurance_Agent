@@ -1,8 +1,36 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from insurance.models import Policy, Claim, InsuranceProduct, Agent, FAQ
-from django.contrib.auth.decorators import login_required
-from insurance.forms import ClaimForm
+from insurance.forms import ClaimForm, PolicyPurchaseForm, ProfileForm
 from django.http import Http404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.db.models import Count
+from django.utils import timezone
+import json
+import random
+from insurance.models import Policy, Claim, InsuranceProduct, Agent, FAQ, Profile # <-- FIX: Ensure Profile is here!
+from insurance.forms import ClaimForm, PolicyPurchaseForm, ProfileForm
+@login_required
+def profile_view(request):
+    """
+    Allows the logged-in user to view and update their personal profile information.
+    """
+    # Get the user's profile, creating it if it doesn't exist (though it should exist due to registration flow)
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            # Redirect back to dashboard (In a real app, use Django Messages for success alert)
+            return redirect('dashboard')
+    else:
+        form = ProfileForm(instance=profile)
+
+    context = {
+        'form': form
+    }
+    return render(request, 'home/profile.html', context)
 
 def home_view(request):
     """
@@ -116,3 +144,108 @@ def knowledge_hub_view(request):
         # You could later add logic here to fetch articles, videos, etc.
     }
     return render(request, 'home/knowledge_hub.html', context)
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_analytics_view(request):
+    """
+    Fetches key metrics and detailed data for administrative analytics.
+    """
+    
+    # --- 1. CORE COUNTS ---
+    total_users = User.objects.all().count()
+    total_policies = Policy.objects.all().count()
+
+    # --- 2. RENEWAL TRACKING (New Metric) ---
+    today = timezone.now().date()
+    renewal_window = today + timezone.timedelta(days=30)
+    
+    # Policies expiring between today and the next 30 days
+    policies_expiring_soon = Policy.objects.filter(
+        status='ACTIVE',
+        expiry_date__gte=today,
+        expiry_date__lte=renewal_window
+    ).count()
+
+    # --- 3. CLAIM ANALYSIS ---
+    claim_counts = Claim.objects.values('status').annotate(count=Count('status')).order_by('-count')
+    claim_labels = [item['status'] for item in claim_counts]
+    claim_data = [item['count'] for item in claim_counts]
+
+    # --- 4. POLICY TYPE POPULARITY (Chart Data) ---
+    policy_type_counts = Policy.objects.values('product__product_type').annotate(count=Count('product__product_type')).order_by('-count')
+    
+    policy_type_labels = [item['product__product_type'] for item in policy_type_counts]
+    policy_type_data = [item['count'] for item in policy_type_counts]
+    
+    # Calculate percentages for display
+    policy_percentages = []
+    if total_policies > 0:
+        for item in policy_type_counts:
+            percentage = round((item['count'] / total_policies) * 100, 1)
+            policy_percentages.append(f"{item['product__product_type']} ({percentage}%)")
+
+
+    # --- 5. RECENT USERS ---
+    last_week = timezone.now() - timezone.timedelta(days=7)
+    recent_users = User.objects.filter(date_joined__gte=last_week).count()
+
+    context = {
+        'total_users': total_users,
+        'total_policies': total_policies,
+        'policies_expiring_soon': policies_expiring_soon, # New Metric
+        'recent_users': recent_users,
+        'policy_percentages': policy_percentages, # New Detailed List
+
+        # Chart Data
+        'claim_chart_labels': json.dumps(claim_labels),
+        'claim_chart_data': json.dumps(claim_data),
+        'policy_chart_labels': json.dumps(policy_type_labels),
+        'policy_chart_data': json.dumps(policy_type_data),
+    }
+    return render(request, 'home/admin_analytics.html', context)
+
+@login_required
+def purchase_policy_view(request):
+    """
+    Handles the final stage of policy purchase, creating a new Policy record.
+    """
+    user = request.user
+    
+    if request.method == 'POST':
+        form = PolicyPurchaseForm(request.POST) 
+        if form.is_valid():
+            product = form.cleaned_data['product']
+            start_date = form.cleaned_data['start_date']
+            
+            # 1. Calculate Policy Details
+            expiry_date = start_date + timezone.timedelta(days=365) # Assuming 1-year policy term
+            premium_amount = product.base_premium + 1000 # Add a fixed processing fee for simplicity
+            policy_number = f"GMS-{random.randint(100000, 999999)}" # Generate unique ID
+            
+            # 2. Create the Policy
+            policy = form.save(commit=False)
+            policy.user = user
+            policy.policy_number = policy_number
+            policy.premium_amount = premium_amount
+            policy.expiry_date = expiry_date
+            policy.status = 'ACTIVE' # Policy is active upon simulated purchase
+            policy.save()
+            
+            # Redirect to the dashboard (with a real success message system needed in production)
+            return redirect('dashboard')
+    else:
+        # For GET request, optionally pre-select a recommended product if passed in the URL
+        initial_data = {}
+        product_id = request.GET.get('product_id')
+        if product_id:
+            try:
+                initial_data['product'] = InsuranceProduct.objects.get(id=product_id)
+            except InsuranceProduct.DoesNotExist:
+                pass
+        
+        form = PolicyPurchaseForm(initial=initial_data)
+
+    context = {
+        'form': form
+    }
+    return render(request, 'home/purchase_policy.html', context)
