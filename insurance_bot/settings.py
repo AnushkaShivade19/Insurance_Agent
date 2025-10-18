@@ -15,10 +15,11 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-djq+!-g)4^3j*v53)q3
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if not DEBUG else ["*"]
-
+LOGIN_URL = 'login'
 # Application definition
 INSTALLED_APPS = [
     'chatbot',
+    'insurance', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

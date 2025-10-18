@@ -1,10 +1,16 @@
+# chatbot/urls.py
+
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    # This URL will serve our chat interface (the HTML page)
+    # Chat-related URLs
     path('', views.chat_view, name='chat'),
-    # This URL will be used by our JavaScript to get the bot's response
     path('get-response', views.get_response, name='get_response'),
     path('set-language', views.set_language, name='set_language'),
+    
+    # Authentication URLs
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
 ]

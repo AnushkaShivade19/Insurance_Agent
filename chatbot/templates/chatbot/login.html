@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gramin Suraksha Mitra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --bg-color: #f0f4f8;
+            --font-family: 'Poppins', sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+        }
+        .form-container {
+            background: #fff;
+            padding: 2.5rem 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        form p {
+            text-align: left;
+            margin: 0 0 1rem 0;
+        }
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+        }
+        .errorlist {
+            list-style-type: none;
+            padding: 0;
+            color: #e63946;
+            font-size: 0.9rem;
+            text-align: left;
+            margin-bottom: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .switch-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #555;
+            text-decoration: none;
+        }
+        .switch-link a {
+            color: var(--primary-color);
+            font-weight: 500;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Welcome Back!</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Login</button>
+        </form>
+        <p class="switch-link">
+            Don't have an account? <a href="{% url 'register' %}">Register now</a>
+        </p>
+    </div>
+</body>
+</html>
