@@ -7,5 +7,6 @@ urlpatterns = [
     path('agents/', views.agents_view, name='agents'),
     path('claims/file/', views.file_claim_view, name='file_claim'),
     path('claims/<int:claim_id>/', views.claim_detail_view, name='claim_detail'),
-    path('products/', views.products_view, name='products')
+    path('products/', views.products_view, name='products'),
+    path('learn/', views.knowledge_hub_view, name='knowledge_hub'),
 ]

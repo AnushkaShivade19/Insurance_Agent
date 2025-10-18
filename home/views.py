@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from insurance.models import Policy, Claim, InsuranceProduct, Agent
+from insurance.models import Policy, Claim, InsuranceProduct, Agent, FAQ
 from django.contrib.auth.decorators import login_required
 from insurance.forms import ClaimForm
 from django.http import Http404
@@ -42,15 +42,26 @@ def dashboard_view(request):
 
 def agents_view(request):
     """
-    Fetches all active agents to display in a directory.
+    Fetches and displays active agents, optionally filtered by city.
     """
-    # Simple directory listing for now, ordered by city
+    city_query = request.GET.get('city') # Get the city name from the URL query parameters
+    
     agents = Agent.objects.filter(is_active=True).order_by('city', 'name')
     
+    if city_query:
+        # Filter agents whose city name contains the query (case-insensitive)
+        agents = agents.filter(city__icontains=city_query)
+        
+    # Get a list of unique cities to populate the dropdown filter on the page
+    unique_cities = Agent.objects.filter(is_active=True).values_list('city', flat=True).distinct().order_by('city')
+
     context = {
-        'agents': agents
+        'agents': agents,
+        'city_query': city_query,
+        'unique_cities': unique_cities,
     }
     return render(request, 'home/agents.html', context)
+
 @login_required
 def file_claim_view(request):
     """
@@ -93,3 +104,15 @@ def claim_detail_view(request, claim_id):
         'policy': claim.policy, # Easily access policy details in the template
     }
     return render(request, 'home/claim_detail.html', context)
+
+def knowledge_hub_view(request):
+    """
+    Fetches active FAQs and renders the knowledge hub page.
+    """
+    faqs = FAQ.objects.filter(is_active=True).order_by('id')
+    
+    context = {
+        'faqs': faqs,
+        # You could later add logic here to fetch articles, videos, etc.
+    }
+    return render(request, 'home/knowledge_hub.html', context)
