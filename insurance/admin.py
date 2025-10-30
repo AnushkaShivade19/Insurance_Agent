@@ -1,10 +1,17 @@
 # insurance/admin.py
 
 from django.contrib import admin
-from .models import Profile, InsuranceProduct, Policy, Claim, FAQ, Agent
+from .models import Profile, InsuranceProduct, Policy, Claim, FAQ, Agent , Article, ClaimStep
 
-# ... (ProfileAdmin, InsuranceProductAdmin, PolicyAdmin are correct) ...
+@admin.register(ClaimStep)
+class ClaimStepAdmin(admin.ModelAdmin):
+    list_display = ('product_type', 'step_number', 'title')
+    list_filter = ('product_type',)
 
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publication_date', 'is_active')
+    list_filter = ('is_active',)
 @admin.register(Claim)
 class ClaimAdmin(admin.ModelAdmin):
     # This is the line to fix

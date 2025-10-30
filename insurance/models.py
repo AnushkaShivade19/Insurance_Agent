@@ -13,9 +13,22 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
-
+  
 # ======== 2. INSURANCE PRODUCT CATALOG ========
+class Article(models.Model):
+    """
+    Represents an educational article for the Knowledge Hub.
+    """
+    title = models.CharField(max_length=200)
+    # The 'upload_to' path will be inside your 'media' folder
+    featured_image = models.ImageField(upload_to='article_images/')
+    content = models.TextField(help_text="Full content of the article. Use simple language.")
+    publication_date = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.title
+    
 class InsuranceProduct(models.Model):
     """
     Stores details about the generic insurance plans you offer (the catalog).
@@ -40,7 +53,24 @@ class InsuranceProduct(models.Model):
         return f"{self.name} ({self.get_product_type_display()})"
 
 # ======== 3. USER-SPECIFIC INSURANCE DATA ========
+      
+class ClaimStep(models.Model):
+    """
+    Stores a generic, ordered step for a specific type of insurance claim.
+    e.g., Step 1 for a Vehicle claim: "File an FIR at the nearest police station."
+    """
+    # Links this step to a generic product type (e.g., VEHICLE, CROP)
+    product_type = models.CharField(max_length=20, choices=InsuranceProduct.POLICY_TYPE_CHOICES)
+    step_number = models.PositiveIntegerField()
+    title = models.CharField(max_length=200)
+    description = models.TextField(help_text="Detailed explanation of what the user needs to do for this step.")
 
+    class Meta:
+        ordering = ['product_type', 'step_number'] # Ensures steps are always in order
+
+    def __str__(self):
+        return f"{self.get_product_type_display()} - Step {self.step_number}: {self.title}"
+    
 class Policy(models.Model):
     """
     Represents a specific insurance policy purchased by a user.

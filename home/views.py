@@ -8,8 +8,9 @@ from django.db.models import Count
 from django.utils import timezone
 import json
 import random
-from insurance.models import Policy, Claim, InsuranceProduct, Agent, FAQ, Profile # <-- FIX: Ensure Profile is here!
-from insurance.forms import ClaimForm, PolicyPurchaseForm, ProfileForm
+from insurance.models import Policy, Claim, InsuranceProduct, Agent, FAQ, Profile, Article, ClaimStep # <-- FIX: Ensure Profile is here!
+from insurance.forms import ClaimForm, PolicyPurchaseForm, ProfileForm 
+
 @login_required
 def profile_view(request):
     """
@@ -31,12 +32,22 @@ def profile_view(request):
         'form': form
     }
     return render(request, 'home/profile.html', context)
-
 def home_view(request):
     """
-    Renders the main homepage for the website.
+    Renders the main homepage.
+    Fetches the latest article and 3 featured products for display.
     """
-    return render(request, 'home/homepage.html')
+    # Fetch the single most recent, active article
+    latest_article = Article.objects.filter(is_active=True).order_by('-publication_date').first()
+    
+    # Fetch a few key products to feature
+    featured_products = InsuranceProduct.objects.filter(is_active=True).order_by('product_type')[:3]
+
+    context = {
+        'article': latest_article,
+        'products': featured_products,
+    }
+    return render(request, 'home/homepage.html', context)
 def products_view(request):
     """
     Fetches all active insurance products from the database to display in a catalog.
@@ -119,29 +130,33 @@ def file_claim_view(request):
 @login_required
 def claim_detail_view(request, claim_id):
     """
-    Shows the detailed status and information for a single claim.
+    Shows detailed status and provides a step-by-step guide for the claim.
     """
     claim = get_object_or_404(Claim, id=claim_id)
     
-    # Security Check: Ensure the user owns the policy related to this claim
     if claim.policy.user != request.user:
         raise Http404("You do not have permission to view this claim.")
+    
+    # --- NEW LOGIC: FETCH GUIDANCE STEPS ---
+    product_type_of_claim = claim.policy.product.product_type
+    guidance_steps = ClaimStep.objects.filter(product_type=product_type_of_claim)
         
     context = {
         'claim': claim,
-        'policy': claim.policy, # Easily access policy details in the template
+        'policy': claim.policy,
+        'guidance_steps': guidance_steps, # Pass the steps to the template
     }
     return render(request, 'home/claim_detail.html', context)
-
 def knowledge_hub_view(request):
     """
-    Fetches active FAQs and renders the knowledge hub page.
+    Fetches active FAQs and Articles for the knowledge hub page.
     """
     faqs = FAQ.objects.filter(is_active=True).order_by('id')
+    articles = Article.objects.filter(is_active=True).order_by('-publication_date')
     
     context = {
         'faqs': faqs,
-        # You could later add logic here to fetch articles, videos, etc.
+        'articles': articles,
     }
     return render(request, 'home/knowledge_hub.html', context)
 

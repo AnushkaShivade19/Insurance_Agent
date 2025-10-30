@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-djq+!-g)4^3j*v53)q3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if not DEBUG else ["*"]
+ALLOWED_HOSTS = ['.vercel.app', 'localhost']
 LOGIN_URL = 'login'
 # Application definition
 INSTALLED_APPS = [
@@ -27,18 +27,45 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
+SITE_ID = 1
 
+# Add this at the bottom of the file
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
+LOGIN_REDIRECT_URL = '/dashboard/' # Send user to dashboard after login
+LOGOUT_REDIRECT_URL = '/'
 ROOT_URLCONF = 'insurance_bot.urls'
 
 TEMPLATES = [
@@ -87,4 +114,25 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # ✅ Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+ACCOUNT_USERNAME_REQUIRED = False      # Don't ask for username during signup
+ACCOUNT_AUTHENTICATION_METHOD = 'email' # Users log in with email
+ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
+ACCOUNT_UNIQUE_EMAIL = True            # Ensure emails are unique
+ACCOUNT_EMAIL_VERIFICATION = 'none'    # Skip email verification for simplicity (can change to 'mandatory' later)
+# ------------------------------------------------
+ACCOUNT_LOGOUT_ON_GET = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# Ensure this is still True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# insurance_bot/settings.py
+
+STATIC_URL = 'static/'
+
+# This tells Django to look in the root 'static' folder
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]

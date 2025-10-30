@@ -57,32 +57,59 @@ def get_response(request):
         state['answers'][f'q{current_step-1}'] = user_message
         
         if current_step >= len(questions):
+            # --- START OF NEW FEATURE: RECOMMENDATION WITH PURCHASE LINKS ---
             recommended_types = generate_recommendations(state['answers'])
             matching_products = InsuranceProduct.objects.filter(product_type__in=recommended_types, is_active=True)
             
-            product_info = "Based on your answers, here are some suitable insurance types:\n"
-            if matching_products:
-                for product in matching_products: product_info += f"- **{product.name}**: {product.description}\n"
-            else: product_info = "Based on your answers, Health Insurance is a good start."
-            
+            product_info_for_ai = "Based on the user's answers, the following products are suitable:\n"
+            if matching_products.exists():
+                for product in matching_products:
+                    # Include the product ID for link generation
+                    product_info_for_ai += f"- Product Name: {product.name}, Product ID: {product.id}, Description: {product.description}\n"
+            else:
+                product_info_for_ai = "Based on the user's answers, Health Insurance is a good starting point. No specific products match perfectly."
+
             language_name = LANGUAGES.get(lang_code, 'English')
-            prompt = f"Present this recommendation conversationally. Explain WHY these are good choices. Respond ONLY in **{language_name}** and be concise.\n\nRecommendation:\n{product_info}"
+            
+            # New, more powerful prompt for the AI to create links
+            prompt = f"""
+            You are presenting insurance recommendations. Based on the following product data, create a friendly, conversational summary for the user.
+            
+            PRODUCT DATA:
+            {product_info_for_ai}
+
+            YOUR TASK & RULES:
+            1.  Explain WHY these products are a good choice for the user.
+            2.  For EACH recommended product, you **MUST** provide a direct link for the user to enroll.
+            3.  The link format is: `<a href="/purchase/?product_id=PRODUCT_ID" class="cta-button">Enroll in [Product Name]</a>`. Replace PRODUCT_ID and [Product Name] accordingly.
+            4.  Respond ONLY in the **{language_name}** language and keep it concise.
+            4. Explain using simple terms suitable for someone unfamiliar with insurance.
+            5. Use 3-4 sentences atleast
+            6 Format the response in HTML for better readability.
+            """
+            
             del request.session['survey_state']
-            history = [] # Use clean history for final recommendation
+            history = [] # Use clean history for the final recommendation
+            # --- END OF NEW FEATURE ---
+
         else:
+            # Continue the survey
             next_step = current_step + 1; state['step'] = next_step; request.session['survey_state'] = state
             return JsonResponse({"botResponse": questions[next_step]})
     else:
+        # Default personalized Q&A logic
         user_policies = Policy.objects.filter(user=user)
         policy_context = "User's policy info:\n" if user_policies else "This user has no policies."
         for p in user_policies: policy_context += f"- Policy #{p.policy_number} ({p.product.name}): Status is {p.get_status_display()}, Expires on {p.expiry_date.strftime('%d-%b-%Y')}.\n"
         
         language_name = LANGUAGES.get(lang_code, 'English')
-        prompt = f"You are 'Gramin Suraksha Mitra'. CONTEXT: {policy_context}. RULES: 1. If asked a personal question, answer using ONLY the CONTEXT. 2. If asked a general question, IGNORE context. 3. Respond ONLY in **{language_name}** and be concise. User's Question: {user_message}"
+        prompt = f" You are BimaSakhi. CONTEXT: {policy_context}. RULES: 1. If asked a personal question, answer using ONLY the CONTEXT. 2. If asked a general question, IGNORE context. 3. Respond ONLY in **{language_name}** and be concise. User's Question: {user_message}"
 
-    # --- API CALL FIX ---
-    # Using gemini-pro which is compatible with the v1beta endpoint structure we confirmed works.
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    # 1. Using the stable gemini-pro model that works with your setup.
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"            
+    # 2. Defining the headers variable to prevent NameError.
+    headers = {"Content-Type": "application/json"}
+    
     contents = history + [{"parts": [{"text": prompt}]}]
     data = {"contents": contents}
 
@@ -98,8 +125,6 @@ def get_response(request):
         print("HTTP error:", e); bot_message = "I'm facing network issues. Please try again."
     
     return JsonResponse({"botResponse": bot_message})
-
-# --- HELPER & AUTH VIEWS ---
 
 @csrf_exempt
 @login_required
