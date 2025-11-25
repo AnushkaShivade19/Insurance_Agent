@@ -133,7 +133,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # insurance_bot/settings.py
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
 # This tells Django to look in the root 'static' folder
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
