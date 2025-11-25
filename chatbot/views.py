@@ -32,110 +32,134 @@ def chat_view(request):
     if 'history' in request.session: del request.session['history']
     if 'survey_state' in request.session: del request.session['survey_state']
     return render(request, 'chatbot/chat.html')
-
 @login_required
 def get_response(request):
     user_message = request.GET.get('userMessage', '').strip()
     api_key = os.getenv("GEMINI_API_KEY")
     user = request.user
     lang_code = request.session.get('language', 'en')
+    language_name = LANGUAGES.get(lang_code, 'English')
+    
+    # Load Survey Questions based on language
     questions = SURVEY_QUESTIONS.get(lang_code, SURVEY_QUESTIONS['en'])
     
+    # Keywords to trigger the survey
     start_survey_keywords = ['find a policy', 'recommend', 'suggest', 'पॉलिसी ढूंढो', 'पॉलिसी शोधा', 'शिफारस']
     
+    # Load History
     history = request.session.get('history', [])
-    prompt = ""
-
+    
     # --- SCENARIO 1: START OR CONTINUE SURVEY ---
+    # Check if user wants to start survey
     if any(keyword in user_message.lower() for keyword in start_survey_keywords) and 'survey_state' not in request.session:
         request.session['survey_state'] = {'step': 1, 'answers': {}}
         return JsonResponse({"botResponse": questions[1]})
 
+    # Handle Active Survey
     if 'survey_state' in request.session:
         state = request.session['survey_state']
         current_step = state['step']
-        state['answers'][f'q{current_step-1}'] = user_message
         
+        # Save answer (using q0, q1 format for 0-indexing consistency if needed)
+        state['answers'][f'q{current_step}'] = user_message
+        
+        # Check if survey is finished
         if current_step >= len(questions):
-            # RECOMMENDATION LOGIC (Existing code)
+            # --- GENERATE RECOMMENDATION ---
             recommended_types = generate_recommendations(state['answers'])
             matching_products = InsuranceProduct.objects.filter(product_type__in=recommended_types, is_active=True)
             
-            product_info_for_ai = "Based on the user's answers, the following products are suitable:\n"
+            product_info = "Based on answers, suitable products:\n"
             if matching_products.exists():
                 for product in matching_products:
-                    product_info_for_ai += f"- Product Name: {product.name}, Product ID: {product.id}, Description: {product.description}\n"
+                    product_info += f"- Name: {product.name}, ID: {product.id}, Desc: {product.description}\n"
             else:
-                product_info_for_ai = "Based on the user's answers, Health Insurance is a good starting point. No specific products match perfectly."
+                product_info = "Suggest general Health Insurance. No specific matches."
 
-            language_name = LANGUAGES.get(lang_code, 'English')
-            
+            # Prompt for Recommendation
             prompt = f"""
-            You are presenting insurance recommendations.
-            PRODUCT DATA: {product_info_for_ai}
-            YOUR TASK & RULES:
-            1. Explain WHY these products are a good choice.
-            2. For EACH recommended product, provide this link format: `<a href="/purchase/?product_id=PRODUCT_ID" class="cta-button">Enroll in [Product Name]</a>`.
-            3. Respond ONLY in **{language_name}**.
-            4. Explain using simple terms.
-            5. Format response in HTML.
+            You are an insurance expert.
+            PRODUCT DATA: {product_info}
+            
+            TASK:
+            1. Recommend these products in **{language_name}**.
+            2. Explain WHY briefly.
+            3. Use HTML format: Use <ul> for lists and <b> for emphasis.
+            4. For every product, add this exact button HTML: 
+               <br><a href="/purchase/?product_id=PRODUCT_ID" class="cta-button" style="background:green; color:white; padding:5px;">Enroll in [Name]</a>
             """
             
+            # Reset state
             del request.session['survey_state']
-            history = [] 
-
+            request.session['history'] = [] # Reset history after survey
+            
+            # We send this prompt to Gemini below...
+            
         else:
-            next_step = current_step + 1; state['step'] = next_step; request.session['survey_state'] = state
+            # Move to next question
+            next_step = current_step + 1
+            state['step'] = next_step
+            request.session['survey_state'] = state
+            request.session.modified = True
             return JsonResponse({"botResponse": questions[next_step]})
     
-    # --- SCENARIO 2: GENERAL Q&A (UPDATED RESTRICTION LOGIC) ---
+    # --- SCENARIO 2: GENERAL Q&A ---
     else:
+        # Fetch Policy Context
         user_policies = Policy.objects.filter(user=user)
-        policy_context = "User's policy info:\n" if user_policies else "This user has no policies."
-        for p in user_policies: policy_context += f"- Policy #{p.policy_number} ({p.product.name}): Status is {p.get_status_display()}, Expires on {p.expiry_date.strftime('%d-%b-%Y')}.\n"
-        
-        language_name = LANGUAGES.get(lang_code, 'English')
-        
-        # --- HERE IS THE CRITICAL CHANGE ---
+        policy_context = "User's Policies:\n" if user_policies else "User has no policies."
+        for p in user_policies:
+            policy_context += f"- Policy #{p.policy_number} ({p.product.name}): Status {p.get_status_display()}, Expires {p.expiry_date.strftime('%d-%b-%Y')}.\n"
+
+        # SYSTEM PROMPT
         prompt = f"""
-        You are BimaSakhi, an AI assistant dedicated EXCLUSIVELY to the insurance domain.
+        You are BimaSakhi, an insurance assistant.
+        CONTEXT: {policy_context}
         
-        CONTEXT:
-        {policy_context}
+        RULES:
+        1. Answer ONLY insurance queries (Plans, Claims, User's specific policies).
+        2. If asked about non-insurance topics (coding, sports, etc.), refuse politely in {language_name}.
+        3. FORMATTING: 
+           - Use HTML tags explicitly. 
+           - Use <b> for key terms.
+           - Use <ul><li> for lists.
+           - Use <p> for paragraphs.
+           - DO NOT produce large blocks of text.
+        4. Respond in {language_name}.
         
-        STRICT GUIDELINES:
-        1. **SCOPE RESTRICTION:** You must ONLY answer questions related to:
-           - Insurance concepts (Life, Health, Vehicle, etc.)
-           - The user's specific policies (from the CONTEXT above).
-           - Claims, premiums, coverage, and financial safety.
-           
-        2. **REFUSAL PROTOCOL:** If the user asks about ANY topic outside of insurance (e.g., coding, sports, cooking, history, math, general chit-chat, or politics), you MUST politely refuse.
-           - Say exactly: "I apologize, but I am an insurance assistant. I can only help you with insurance-related queries." (Translate this refusal to {language_name}).
-           
-        3. **PERSONAL DATA:** If the user asks about their specific details, use the CONTEXT provided.
-        
-        4. **LANGUAGE:** Respond ONLY in **{language_name}**.
-        
-        User's Question: {user_message}
+        User Query: {user_message}
         """
 
-    # 1. API Call
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"            
+    # --- API CALL TO GEMINI ---
+    # Correct Model Version: 1.5-flash
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"            
     headers = {"Content-Type": "application/json"}
     
-    contents = history + [{"parts": [{"text": prompt}]}]
+    # Construct Payload with CORRECT Roles
+    # History must look like: [{'role': 'user', 'parts': [...]}, {'role': 'model', 'parts': [...]}]
+    contents = history + [{"role": "user", "parts": [{"text": prompt}]}]
     data = {"contents": contents}
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
+        response.raise_for_status() # Raises error for 400/500 codes
+        
         bot_message = response.json()['candidates'][0]['content']['parts'][0]['text']
         
-        if history is not None:
-             history.append({"parts": [{"text": user_message}]}); history.append({"parts": [{"text": bot_message}]})
-             request.session['history'] = history[-8:]
+        # Update History with ROLES
+        history.append({"role": "user", "parts": [{"text": user_message}]})
+        history.append({"role": "model", "parts": [{"text": bot_message}]})
+        
+        # Keep last 10 turns to save token space
+        request.session['history'] = history[-10:]
+        request.session.modified = True
+        
+    except requests.exceptions.HTTPError as e:
+        print(f"Gemini API Error: {e.response.text}")
+        bot_message = "I am currently facing high traffic. Please try again."
     except Exception as e:
-        print("HTTP error:", e); bot_message = "I'm facing network issues. Please try again."
+        print(f"Server Error: {e}")
+        bot_message = "An internal error occurred."
     
     return JsonResponse({"botResponse": bot_message})
 
