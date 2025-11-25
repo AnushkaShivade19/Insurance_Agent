@@ -143,9 +143,7 @@ def get_response(request):
 
     # --- API CALL TO GEMINI ---
     # Correct Model Version: 1.5-flash
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"            
-    headers = {"Content-Type": "application/json"}
-    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     # Construct Payload with CORRECT Roles
     # History must look like: [{'role': 'user', 'parts': [...]}, {'role': 'model', 'parts': [...]}]
     contents = history + [{"role": "user", "parts": [{"text": prompt}]}]
