@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 import requests, os, json, datetime
 
 # Import models and recommendation logic
+# Ensure 'insurance' matches your actual app name
 from insurance.models import Policy, InsuranceProduct
 from .recommendation_logic import generate_recommendations
 
@@ -29,9 +30,13 @@ SURVEY_QUESTIONS = {
 
 @login_required
 def chat_view(request):
-    if 'history' in request.session: del request.session['history']
-    if 'survey_state' in request.session: del request.session['survey_state']
+    # Clear session data on page load for a fresh start
+    if 'history' in request.session:
+        del request.session['history']
+    if 'survey_state' in request.session:
+        del request.session['survey_state']
     return render(request, 'chatbot/chat.html')
+
 @login_required
 def get_response(request):
     user_message = request.GET.get('userMessage', '').strip()
@@ -41,6 +46,7 @@ def get_response(request):
     language_name = LANGUAGES.get(lang_code, 'English')
     
     # Load Survey Questions based on language
+    # Default to English if language not found in dict
     questions = SURVEY_QUESTIONS.get(lang_code, SURVEY_QUESTIONS['en'])
     
     # Keywords to trigger the survey
@@ -60,7 +66,7 @@ def get_response(request):
         state = request.session['survey_state']
         current_step = state['step']
         
-        # Save answer (using q0, q1 format for 0-indexing consistency if needed)
+        # Save answer (using q0, q1 format for consistency)
         state['answers'][f'q{current_step}'] = user_message
         
         # Check if survey is finished
@@ -84,9 +90,12 @@ def get_response(request):
             TASK:
             1. Recommend these products in **{language_name}**.
             2. Explain WHY briefly.
-            3. Use HTML format: Use <ul> for lists and <b> for emphasis.
+            3. Use HTML formatting explicitly:
+               - Use <ul><li> for bullet points.
+               - Use <b> for bold text.
+               - Use <br> for new lines.
             4. For every product, add this exact button HTML: 
-               <br><a href="/purchase/?product_id=PRODUCT_ID" class="cta-button" style="background:green; color:white; padding:5px;">Enroll in [Name]</a>
+               <br><a href="/purchase/?product_id=PRODUCT_ID" class="cta-button" style="background:green; color:white; padding:5px; border-radius:5px; text-decoration:none;">Enroll in [Name]</a>
             """
             
             # Reset state
@@ -119,12 +128,14 @@ def get_response(request):
         RULES:
         1. Answer ONLY insurance queries (Plans, Claims, User's specific policies).
         2. If asked about non-insurance topics (coding, sports, etc.), refuse politely in {language_name}.
-        3. FORMATTING: 
+        3. FORMATTING (STRICTLY USE HTML): 
            - Use HTML tags explicitly. 
            - Use <b> for key terms.
-           - Use <ul><li> for lists.
+           - Use <ul> and <li> for lists.
            - Use <p> for paragraphs.
-           - DO NOT produce large blocks of text.
+           - Use <br> for line breaks.
+           - DO NOT produce large blocks of plain text.
+           - DO NOT use Markdown symbols like ** or *.
         4. Respond in {language_name}.
         
         User Query: {user_message}
@@ -144,8 +155,12 @@ def get_response(request):
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status() # Raises error for 400/500 codes
         
-        bot_message = response.json()['candidates'][0]['content']['parts'][0]['text']
-        
+        # Check if response structure is valid
+        if 'candidates' in response.json() and len(response.json()['candidates']) > 0:
+             bot_message = response.json()['candidates'][0]['content']['parts'][0]['text']
+        else:
+             bot_message = "I didn't receive a valid response from the server."
+
         # Update History with ROLES
         history.append({"role": "user", "parts": [{"text": user_message}]})
         history.append({"role": "model", "parts": [{"text": bot_message}]})
@@ -167,18 +182,24 @@ def get_response(request):
 @login_required
 def set_language(request):
     if request.method == 'POST':
-        data = json.loads(request.body); lang_code = data.get('language', 'en')
+        data = json.loads(request.body)
+        lang_code = data.get('language', 'en')
         request.session['language'] = lang_code
-        if 'history' in request.session: del request.session['history']
+        if 'history' in request.session:
+            del request.session['history']
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
-# ... (rest of your auth views: register_view, login_view, logout_view remain unchanged) ...
+# ... (rest of your auth views: register_view, login_view, logout_view) ...
 def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
-        if form.is_valid(): user = form.save(); login(request, user); return redirect('dashboard')
-    else: form = UserCreationForm()
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
     return render(request, 'chatbot/register.html', {'form': form})
 
 def login_view(request):
@@ -188,10 +209,12 @@ def login_view(request):
             user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
             if user is not None:
                 login(request, user)
-                return redirect('dashboard')
+                # Redirect to dashboard, or 'chat' if that's your main page
+                return redirect('dashboard') 
     else:
         form = AuthenticationForm()
     return render(request, 'chatbot/login.html', {'form': form})
 
 def logout_view(request):
-    logout(request); return redirect('login')
+    logout(request)
+    return redirect('login')
