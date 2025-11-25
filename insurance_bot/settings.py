@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -46,7 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
 ]
-SITE_ID = 1
+
 
 # Add this at the bottom of the file
 AUTHENTICATION_BACKENDS = [
@@ -110,9 +111,11 @@ USE_I18N = True
 USE_TZ = True
 
 # ✅ Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
+
+# Add this line to enable WhiteNoise storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ✅ Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -130,11 +133,3 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # Ensure this is still True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
-# insurance_bot/settings.py
-
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
-# This tells Django to look in the root 'static' folder
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
