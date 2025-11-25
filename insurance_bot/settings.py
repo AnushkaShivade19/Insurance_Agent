@@ -4,6 +4,7 @@ import os
 import dj_database_url
 from dotenv import load_dotenv
 
+SITE_ID = 1
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
