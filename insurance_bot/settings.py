@@ -55,18 +55,6 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'OAUTH_PKCE_ENABLED': True,
-    }
-}
 LOGIN_REDIRECT_URL = '/dashboard/' # Send user to dashboard after login
 LOGOUT_REDIRECT_URL = '/'
 ROOT_URLCONF = 'insurance_bot.urls'
@@ -134,13 +122,4 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # Ensure this is still True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
-# settings.py
-
-# Tell Django to trust Vercel's SSL (HTTPS)
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# Tell allauth to generate https:// links
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+SOCIALACCOUNT_AUTO_SIGNUP = True
