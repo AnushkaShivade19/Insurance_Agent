@@ -8,6 +8,7 @@ Django==5.2.8
 django-allauth==65.13.1
 django_neomodel==0.2.0
 dotenv==0.9.9
+Faker==38.2.0
 idna==3.11
 jwt==1.4.0
 neo4j==5.19.0
