@@ -99,11 +99,23 @@ TIME_ZONE = 'Asia/Kolkata'  # set to India timezone (you can adjust)
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
+import os
+from pathlib import Path
 
-# Add this line to enable WhiteNoise storage
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# URL to use when referring to static files (where they will be served from)
+STATIC_URL = 'static/'
+
+# Where your static files live during development (e.g., inside your 'static' folder)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'), 
+]
+
+# Where Django collects all static files for production (WhiteNoise serves from here)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Enable WhiteNoise's file compression and caching
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ✅ Default primary key field type
