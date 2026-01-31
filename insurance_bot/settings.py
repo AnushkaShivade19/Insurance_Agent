@@ -48,7 +48,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
 ]
-
+PWA_APP_NAME = 'BeemaSakhi'
+PWA_APP_DESCRIPTION = "insurance made easy."
+PWA_APP_THEME_COLOR = '#0A0302'
+PWA_APP_ICONS = [{'src': '/static/images/icon.png', 'sizes': '160x160'}]
+# Tell Django where your custom service worker will live
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
 
 # Add this at the bottom of the file
 AUTHENTICATION_BACKENDS = [

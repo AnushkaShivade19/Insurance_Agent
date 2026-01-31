@@ -1,0 +1,215 @@
+:root {
+    --primary-color: #D9534F; /* Terracotta Red (User messages, CTA) */
+    --secondary-color: #1e3a8a; /* Deep Indigo Blue (Header, Bot avatar) */
+    --accent-color: #F0AD4E; /* Marigold Yellow (Highlights) */
+    --user-msg-bg: var(--primary-color);
+    --bot-msg-bg: #FFFFFF; /* White for bot messages */
+    --chat-bg-color: #F8F9FC; /* Very light blue-grey background */
+    --text-color: #333;
+    --font-serif: 'Lora', serif;
+    --font-sans: 'Poppins', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    height: 100%; margin: 0; overflow: hidden;
+    font-family: var(--font-sans); background-color: var(--chat-bg-color); color: var(--text-color);
+}
+
+.chat-container {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    background-color: var(--chat-bg-color); overflow: hidden;
+}
+
+/* --- HEADER --- */
+.header-controls {
+    display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.8rem;
+    background: linear-gradient(90deg, var(--secondary-color) 0%, #2a4e9b 100%);
+    color: white; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 20;
+}
+
+.header-title { font-family: var(--font-serif); font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; }
+.header-title span { margin-left: 12px; font-size: 0.9rem; font-weight: 400; opacity: 0.85; }
+
+.header-controls .nav-links { display: flex; align-items: center; }
+.header-controls .nav-links a {
+    color: #fff; text-decoration: none; font-weight: 500; margin-left: 1.5rem;
+    font-size: 1rem; opacity: 0.9; transition: opacity 0.2s;
+}
+.header-controls .nav-links a:hover { opacity: 1; text-decoration: underline; }
+
+/* Custom Dropdown Styles */
+.custom-select-wrapper { position: relative; user-select: none; margin-left: 1rem; }
+.custom-select-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.1); color: #fff; font-family: var(--font-sans); cursor: pointer;
+    font-size: 0.95rem; transition: background-color 0.2s; min-width: 120px;
+}
+.custom-select-trigger:hover { background-color: rgba(255,255,255,0.2); }
+.custom-select-trigger .feather { margin-left: 8px; transition: transform 0.3s ease; }
+.custom-select-wrapper.active .custom-select-trigger .feather { transform: rotate(180deg); }
+
+.custom-options {
+    position: absolute; top: 110%; right: 0; background-color: #fff;
+    border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    width: 220px; z-index: 10;
+    max-height: 300px; overflow-y: auto;
+    opacity: 0; visibility: hidden;
+    transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+.custom-select-wrapper.active .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
+
+.custom-option {
+    padding: 10px 15px; color: var(--text-color); cursor: pointer;
+    transition: background-color 0.2s; font-size: 0.9rem;
+}
+.custom-option:hover { background-color: #f0f4f8; }
+.custom-option.selected { background-color: var(--secondary-color); color: #fff; font-weight: 500; }
+
+/* --- CHAT BOX & MESSAGES --- */
+.chat-box { flex-grow: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+.chat-box::-webkit-scrollbar { width: 8px; }
+.chat-box::-webkit-scrollbar-track { background: transparent; }
+.chat-box::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+.message-row { display: flex; gap: 12px; align-items: flex-end; max-width: 80%; }
+.bot-message .message-row { align-self: flex-start; }
+.user-message .message-row { align-self: flex-end; flex-direction: row-reverse; }
+
+.avatar {
+    width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem; flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1); border: 2px solid white;
+}
+.bot-avatar { background-color: var(--secondary-color); color: #fff; }
+.user-avatar { background-color: #66BB6A; color: #fff; }
+
+/* --- ENHANCED MESSAGE CONTENT --- */
+.message-content {
+    padding: 14px 20px; 
+    border-radius: 18px; 
+    line-height: 1.6;
+    animation: fadeIn 0.4s ease-out; 
+    word-wrap: break-word;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
+    font-size: 1rem;
+    
+    /* Layout for structured content */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Adds space between paragraphs and lists */
+}
+
+/* User Bubble Style */
+.user-message .message-content { 
+    background: var(--user-msg-bg); 
+    color: white; 
+    border-bottom-right-radius: 4px; 
+}
+
+/* Bot Bubble Style */
+.bot-message .message-content { 
+    background: var(--bot-msg-bg); 
+    color: var(--text-color); 
+    border-bottom-left-radius: 4px; 
+}
+
+/* --- STRUCTURED HTML ELEMENT STYLING --- */
+
+/* Bullet Lists */
+.message-content ul {
+    margin: 5px 0 10px 0;
+    padding-left: 25px; /* Ensures indentation */
+    list-style-type: disc;
+}
+
+/* List Items */
+.message-content li {
+    margin-bottom: 6px; /* Spacing between points */
+    padding-left: 5px;
+}
+
+/* Headings (Product Names) */
+.message-content h3 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 5px;
+    color: var(--secondary-color); /* Blue heading for Bot */
+}
+/* Heading Color Override for User Bubble */
+.user-message .message-content h3 { 
+    color: white; 
+    border-color: rgba(255,255,255,0.3); 
+}
+
+/* Bold Text */
+.message-content b, 
+.message-content strong {
+    font-weight: 700;
+    color: inherit;
+}
+
+/* Product Card (Optional Container) */
+.product-card {
+    background: rgba(0,0,0,0.02);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid rgba(0,0,0,0.05);
+    margin-top: 10px;
+}
+
+/* CTA Buttons */
+.message-content .cta-button {
+    display: inline-block; 
+    background-color: var(--secondary-color);
+    color: #fff !important; 
+    padding: 9px 18px; 
+    border-radius: 25px; 
+    text-decoration: none; 
+    margin-top: 12px;
+    font-weight: 600; 
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 0.95rem; 
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    border: none;
+    cursor: pointer;
+}
+.message-content .cta-button:hover { 
+    background-color: #1a2c6d; 
+    transform: translateY(-1px); 
+}
+
+/* --- INPUT AREA --- */
+.input-area {
+    display: flex; align-items: center; border-top: 1px solid #dcdcdc;
+    background: #fff; padding: 0.9rem 1.8rem; flex-shrink: 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.07);
+}
+.input-area input {
+    flex-grow: 1; padding: 14px 20px; border: none; border-radius: 30px;
+    background: #EDF2F7; outline: none; font-size: 1.05rem; font-family: var(--font-sans);
+    margin-right: 12px; transition: background-color 0.2s, box-shadow 0.2s;
+}
+.input-area input:focus { background-color: #E2E8F0; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.3); }
+
+.input-area button {
+    background: var(--primary-color); color: white; border: none; border-radius: 50%;
+    cursor: pointer; transition: background-color 0.3s, transform 0.2s;
+    height: 50px; width: 50px; display: flex; align-items: center; justify-content: center;
+    margin-left: 0.5rem; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+.input-area button:hover { background: #c9302c; transform: translateY(-2px); }
+
+.mic-button { background: #EAEAEA; color: #555; transition: color 0.3s, background-color 0.3s, transform 0.2s; }
+.mic-button:hover { background-color: #DFDFDF; transform: translateY(-2px); }
+.mic-button.is-listening { color: var(--primary-color); background-color: #FFE0B2; animation: pulse 1.5s infinite; }
+
+.feather { width: 22px; height: 22px; stroke-width: 2.5; }
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 83, 79, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

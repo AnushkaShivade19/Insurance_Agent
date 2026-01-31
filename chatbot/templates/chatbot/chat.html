@@ -5,294 +5,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BimaSakhi 💬</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>
-        :root {
-            --primary-color: #D9534F; /* Terracotta Red (User messages, CTA) */
-            --secondary-color: #1e3a8a; /* Deep Indigo Blue (Header, Bot avatar) */
-            --accent-color: #F0AD4E; /* Marigold Yellow (Highlights) */
-            --user-msg-bg: var(--primary-color);
-            --bot-msg-bg: #FFFFFF; /* White for bot messages */
-            --chat-bg-color: #F8F9FC; /* Very light blue-grey background */
-            --text-color: #333;
-            --font-serif: 'Lora', serif;
-            --font-sans: 'Poppins', sans-serif;
-        }
-        * { box-sizing: border-box; }
-        html, body {
-            height: 100%; margin: 0; overflow: hidden;
-            font-family: var(--font-sans); background-color: var(--chat-bg-color); color: var(--text-color);
-        }
-        .chat-container {
-            width: 100%; height: 100%; display: flex; flex-direction: column;
-            background-color: var(--chat-bg-color); overflow: hidden;
-        }
-        .header-controls {
-            display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.8rem;
-            background: linear-gradient(90deg, var(--secondary-color) 0%, #2a4e9b 100%);
-            color: white; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            position: sticky; top: 0; z-index: 20;
-        }
-        .header-title { font-family: var(--font-serif); font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; }
-        .header-title span { margin-left: 12px; font-size: 0.9rem; font-weight: 400; opacity: 0.85; }
-        .header-controls .nav-links { display: flex; align-items: center; }
-        .header-controls .nav-links a {
-            color: #fff; text-decoration: none; font-weight: 500; margin-left: 1.5rem;
-            font-size: 1rem; opacity: 0.9; transition: opacity 0.2s;
-        }
-        .header-controls .nav-links a:hover { opacity: 1; text-decoration: underline; }
-
-        /* Custom Dropdown Styles */
-        .custom-select-wrapper { position: relative; user-select: none; margin-left: 1rem; }
-        .custom-select-trigger {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.4);
-            background: rgba(255,255,255,0.1); color: #fff; font-family: var(--font-sans); cursor: pointer;
-            font-size: 0.95rem; transition: background-color 0.2s; min-width: 120px;
-        }
-        .custom-select-trigger:hover { background-color: rgba(255,255,255,0.2); }
-        .custom-select-trigger .feather { margin-left: 8px; transition: transform 0.3s ease; }
-        .custom-select-wrapper.active .custom-select-trigger .feather { transform: rotate(180deg); }
-        .custom-options {
-            position: absolute; top: 110%; right: 0; background-color: #fff;
-            border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            width: 220px; z-index: 10;
-            max-height: 300px; overflow-y: auto;
-            opacity: 0; visibility: hidden;
-            transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-        }
-        .custom-select-wrapper.active .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
-        .custom-option {
-            padding: 10px 15px; color: var(--text-color); cursor: pointer;
-            transition: background-color 0.2s; font-size: 0.9rem;
-        }
-        .custom-option:hover { background-color: #f0f4f8; }
-        .custom-option.selected { background-color: var(--secondary-color); color: #fff; font-weight: 500; }
-        
-        /* Chat Box & Messages */
-        .chat-box { flex-grow: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
-        .chat-box::-webkit-scrollbar { width: 8px; }
-        .chat-box::-webkit-scrollbar-track { background: transparent; }
-        .chat-box::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        .message-row { display: flex; gap: 12px; align-items: flex-end; max-width: 80%; }
-        .bot-message .message-row { align-self: flex-start; }
-        .user-message .message-row { align-self: flex-end; flex-direction: row-reverse; }
-        .avatar {
-            width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 1.5rem; flex-shrink: 0;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1); border: 2px solid white;
-        }
-        .bot-avatar { background-color: var(--secondary-color); color: #fff; }
-        .user-avatar { background-color: #66BB6A; color: #fff; }
-        .message-content {
-            padding: 14px 20px; border-radius: 18px; line-height: 1.6;
-            animation: fadeIn 0.4s ease-out; word-wrap: break-word;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); font-size: 1rem;
-        }
-        .user-message .message-content { background: var(--user-msg-bg); color: white; border-bottom-right-radius: 12px; }
-        .bot-message .message-content { background: var(--bot-msg-bg); color: var(--text-color); border-bottom-left-radius: 12px; }
-        .message-content .cta-button {
-            display: inline-block; background-color: var(--secondary-color);
-            color: #fff !important; padding: 9px 18px; border-radius: 25px; text-decoration: none; margin-top: 12px;
-            font-weight: 600; transition: background-color 0.3s, transform 0.2s;
-            font-size: 0.95rem; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-        }
-        .message-content .cta-button:hover { background-color: #1a2c6d; transform: translateY(-1px); }
-        
-        /* Input Area */
-        .input-area {
-            display: flex; align-items: center; border-top: 1px solid #dcdcdc;
-            background: #fff; padding: 0.9rem 1.8rem; flex-shrink: 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.07);
-        }
-        .input-area input {
-            flex-grow: 1; padding: 14px 20px; border: none; border-radius: 30px;
-            background: #EDF2F7; outline: none; font-size: 1.05rem; font-family: var(--font-sans);
-            margin-right: 12px; transition: background-color 0.2s, box-shadow 0.2s;
-        }
-        .input-area input:focus { background-color: #E2E8F0; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.3); }
-        .input-area button {
-            background: var(--primary-color); color: white; border: none; border-radius: 50%;
-            cursor: pointer; transition: background-color 0.3s, transform 0.2s;
-            height: 50px; width: 50px; display: flex; align-items: center; justify-content: center;
-            margin-left: 0.5rem; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-        }
-        .input-area button:hover { background: #c9302c; transform: translateY(-2px); }
-        .mic-button { background: #EAEAEA; color: #555; transition: color 0.3s, background-color 0.3s, transform 0.2s; }
-        .mic-button:hover { background-color: #DFDFDF; transform: translateY(-2px); }
-        .mic-button.is-listening { color: var(--primary-color); background-color: #FFE0B2; animation: pulse 1.5s infinite; }
-        .feather { width: 22px; height: 22px; stroke-width: 2.5; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 83, 79, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 83, 79, 0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+    
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="header-controls">
-            <div class="header-title">
-                BimaSakhi
-                {% if user.is_authenticated %} <span>(Welcome, {{ user.username }})</span> {% endif %}
-            </div>
-            <div class="nav-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}">Dashboard</a>
-                    <a href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a href="{% url 'login' %}">Login</a>
-                {% endif %}
-                
-                <div class="custom-select-wrapper">
-                    <div class="custom-select-trigger">
-                        <span id="selected-language-text">English</span>
-                        <i data-feather="chevron-down" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <div class="custom-options"></div>
-                </div>
-            </div>
+<div class="chat-container">
+    <div class="header-controls">
+        <div class="header-title">
+            BimaSakhi
+            {% if user.is_authenticated %} <span>(Welcome, {{ user.username }})</span> {% endif %}
         </div>
-        <div class="chat-box" id="chatBox"></div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Ask a question or say 'recommend'..." onkeypress="handleKeyPress(event)">
-            <button id="mic-btn" class="mic-button" title="Use Voice"><i data-feather="mic"></i></button>
-            <button onclick="sendMessage()" title="Send Message"><i data-feather="send"></i></button>
+
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+
+            <div class="custom-select-wrapper">
+                <div class="custom-select-trigger">
+                    <span id="selected-language-text">English</span>
+                    <i data-feather="chevron-down"></i>
+                </div>
+                <div class="custom-options"></div>
+            </div>
         </div>
     </div>
-    <script>
-        feather.replace();
 
-        const chatBox = document.getElementById("chatBox"), userInput = document.getElementById("userInput");
-        const micBtn = document.getElementById("mic-btn");
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-        const speechSynthesis = window.speechSynthesis;
-        
-        // Custom Dropdown Logic
-        const languageData = {
-            'en-IN': 'English', 'as-IN': 'অসমীয়া', 'bn-IN': 'বাংলা', 'brx': 'बोड़ो', 'doi': 'डोगरी',
-            'gu-IN': 'ગુજરાતી', 'hi-IN': 'हिंदी', 'kn-IN': 'ಕನ್ನಡ', 'ks-IN': 'کٲشُر', 'kok-IN': 'कोंकणी',
-            'mai-IN': 'मैथिली', 'ml-IN': 'മലയാളം', 'mni': 'মৈতৈলোন্', 'mr-IN': 'मराठी', 'ne-IN': 'नेपाली',
-            'or-IN': 'ଓଡ଼ିଆ', 'pa-IN': 'ਪੰਜਾਬੀ', 'sa-IN': 'संस्कृतम्', 'sat': 'ᱥᱟᱱᱛᱟᱲᱤ', 'sd': 'सिन्धी',
-            'ta-IN': 'தமிழ்', 'te-IN': 'తెలుగు', 'ur-IN': 'اردو'
-        };
-        const selectWrapper = document.querySelector('.custom-select-wrapper');
-        const selectTrigger = document.querySelector('.custom-select-trigger');
-        const optionsContainer = document.querySelector('.custom-options');
-        const selectedLangText = document.getElementById('selected-language-text');
-        
-        Object.entries(languageData).forEach(([code, name]) => {
-            const option = document.createElement('div');
-            option.classList.add('custom-option');
-            option.dataset.value = code;
-            option.textContent = name;
-            if (code === 'en-IN') option.classList.add('selected');
-            optionsContainer.appendChild(option);
-        });
-        const allOptions = document.querySelectorAll('.custom-option');
+    <div class="chat-box" id="chatBox"></div>
 
-        selectTrigger.addEventListener('click', () => selectWrapper.classList.toggle('active'));
+    <div class="input-area">
+        <input id="userInput" placeholder="Ask a question or say 'recommend'..." onkeypress="handleKeyPress(event)">
+        <button id="mic-btn" class="mic-button"><i data-feather="mic"></i></button>
+        <button onclick="sendMessage()"><i data-feather="send"></i></button>
+    </div>
+</div>
 
-        allOptions.forEach(option => {
-            option.addEventListener('click', async () => {
-                allOptions.forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                const selectedLangCode = option.dataset.value;
-                selectedLangText.textContent = option.textContent;
-                selectWrapper.classList.remove('active');
-                
-                setWelcomeMessage(selectedLangCode);
-                const langCode = selectedLangCode.split('-')[0];
-                await fetch('/chat/set-language', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ language: langCode })
-                });
-            });
-        });
-        window.addEventListener('click', (e) => {
-            if (!selectWrapper.contains(e.target)) selectWrapper.classList.remove('active');
-        });
-        
-        // Voice Recognition Logic
-        if (recognition) {
-            recognition.continuous = false; recognition.lang = allOptions[0].dataset.value; recognition.interimResults = false;
-            recognition.onresult = (event) => { userInput.value = event.results[0][0].transcript; micBtn.classList.remove("is-listening"); sendMessage(); };
-            recognition.onerror = (event) => { console.error("Speech recognition error:", event.error); micBtn.classList.remove("is-listening"); micBtn.innerHTML = '<i data-feather="mic"></i>'; feather.replace(); };
-            recognition.onstart = () => { micBtn.innerHTML = '<i data-feather="mic-off"></i>'; feather.replace(); }
-            recognition.onend = () => { micBtn.classList.remove("is-listening"); micBtn.innerHTML = '<i data-feather="mic"></i>'; feather.replace(); }
-            
-            micBtn.addEventListener("click", () => {
-                if (micBtn.classList.contains("is-listening")) { recognition.stop(); } 
-                else {
-                    const selectedOption = document.querySelector('.custom-option.selected');
-                    recognition.lang = selectedOption ? selectedOption.dataset.value : 'en-IN';
-                    recognition.start(); 
-                    micBtn.classList.add("is-listening"); 
-                }
-            });
-        } else { micBtn.style.display = "none"; }
+<script src="{% static 'js/chat.js' %}"></script>
 
-        // Core Chat Functions
-        function appendMessage(text, type) {
-            const wrapper = document.createElement("div"); wrapper.className = type;
-            const row = document.createElement("div"); row.className = "message-row";
-            const content = document.createElement("div"); content.className = "message-content"; content.innerHTML = text;
-            if (type === 'bot-message') {
-                const avatar = document.createElement("div"); avatar.className = "avatar bot-avatar"; avatar.innerHTML = '<i data-feather="shield"></i>'; feather.replace();
-                row.appendChild(avatar);
-            } else {
-                const avatar = document.createElement("div"); avatar.className = "avatar user-avatar"; avatar.innerHTML = '<i data-feather="user"></i>'; feather.replace();
-                row.appendChild(avatar);
-            }
-            row.appendChild(content); wrapper.appendChild(row); chatBox.appendChild(wrapper); chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function speak(text, lang) {
-            if (speechSynthesis.speaking) speechSynthesis.cancel();
-            const cleanText = text.replace(/<a.*?>(.*?)<\/a>/g, '$1').replace(/\*\*(.*?)\*\*/g, '$1').replace(/#/g, '');
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = lang;
-            speechSynthesis.speak(utterance);
-        }
-
-        async function sendMessage() {
-            const text = userInput.value.trim(); if (!text) return;
-            appendMessage(text, "user-message"); userInput.value = ""; appendMessage("...", "bot-message");
-            try {
-                const response = await fetch(`/chat/get-response?userMessage=${encodeURIComponent(text)}`);
-                const data = await response.json();
-                chatBox.removeChild(chatBox.lastChild);
-                appendMessage(data.botResponse, "bot-message");
-                const selectedOption = document.querySelector('.custom-option.selected');
-                speak(data.botResponse, selectedOption ? selectedOption.dataset.value : 'en-IN');
-            } catch (error) {
-                console.error("Error sending message:", error);
-                chatBox.removeChild(chatBox.lastChild);
-                appendMessage("⚠️ Sorry, I'm facing network issues or an error occurred. Please try again.", "bot-message");
-            }
-        }
-
-        function setWelcomeMessage(lang) {
-            const messages = {
-                'en-IN': "Namaste! 🙏 I'm your BimaSakhi. Ask me to explain a term, or say 'find a policy' for a recommendation.",
-                'hi-IN': "नमस्ते! 🙏 मैं आपकी बीमा सखी हूँ। मुझसे कोई बीमा शब्द पूछें, या सिफारिश पाने के लिए 'पॉलिसी ढूंढो' कहें।",
-                'mr-IN': "नमस्कार! 🙏 मी तुमची विमा सखी आहे. मला एखादा शब्द समजावून सांगा, किंवा शिफारशीसाठी 'पॉलिसी शोधा' म्हणा।",
-                 // All other welcome messages go here...
-            };
-            chatBox.innerHTML = ''; appendMessage(messages[lang] || messages['en-IN'], 'bot-message');
-        }
-
-        function handleKeyPress(e) { if (e.key === "Enter") sendMessage(); }
-
-        window.onload = async () => {
-            const initialLang = allOptions[0].dataset.value;
-            setWelcomeMessage(initialLang);
-            const langCode = initialLang.split('-')[0];
-            await fetch('/chat/set-language', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ language: langCode })
-            });
-        };
-    </script>
 </body>
 </html>
