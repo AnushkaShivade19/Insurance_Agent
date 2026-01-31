@@ -1,140 +1,277 @@
-from pathlib import Path
-from pathlib import Path
 import os
-import dj_database_url
-from dotenv import load_dotenv
+import json
+import time
+import random
+import requests
+import datetime
+from io import BytesIO
+from gtts import gTTS
 
-SITE_ID = 1
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Import models
+from insurance.models import Policy, InsuranceProduct
+from .constants import SURVEY_QUESTIONS, LANGUAGES
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-djq+!-g)4^3j*v53)q34x(p%uay0r8v*rml9d-oz+ia(f)=1dg")
+# --- CORE VIEWS ---
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+@login_required
+def chat_view(request):
+    """
+    Renders the main chat interface.
+    Clears old session data to start fresh.
+    """
+    if 'history' in request.session: del request.session['history']
+    if 'survey_state' in request.session: del request.session['survey_state']
+    return render(request, 'chatbot/chat.html')
 
-ALLOWED_HOSTS = ['.vercel.app', 'localhost','127.0.0.1']
-LOGIN_URL = 'login'
-# Application definition
-INSTALLED_APPS = [
-    'home',
-    'chatbot',
-    'insurance', 
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    'allauth.account.middleware.AccountMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+@login_required
+def get_response(request):
+    user_message = request.GET.get('userMessage', '').strip()
+    api_key = os.getenv("GEMINI_API_KEY")
+    user = request.user
+    lang_code = request.session.get('language', 'en')
+    language_name = LANGUAGES.get(lang_code, 'English')
     
-]
-PWA_APP_NAME = 'BeemaSakhi'
-PWA_APP_DESCRIPTION = "insurance made easy."
-PWA_APP_THEME_COLOR = '#0A0302'
-PWA_APP_ICONS = [{'src': '/static/images/icon.png', 'sizes': '160x160'}]
-# Tell Django where your custom service worker will live
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
+    questions = SURVEY_QUESTIONS.get(lang_code, SURVEY_QUESTIONS['en'])
+    start_survey_keywords = ['find a policy', 'recommend', 'suggest', 'help me choose', 'पॉलिसी ढूंढो', 'पॉलिसी शोधा', 'शिफारस']
+    
+    # Load History
+    history = request.session.get('history', [])
+    if not isinstance(history, list): history = []
+    
+    # --- LOAD INVENTORY (Context for the AI) ---
+    active_products = InsuranceProduct.objects.filter(is_active=True)
+    product_inventory = ""
+    
+    if active_products.exists():
+        for prod in active_products:
+            product_inventory += (
+                f"ID: {prod.id} | NAME: {prod.name}\n"
+                f"TYPE: {prod.product_type} | PREMIUM: ₹{prod.base_premium}/yr\n"
+                f"BEST FOR: {prod.description}\n"
+                f"KEY FEATURES: {prod.key_features}\n"
+                f"-----------------------------------\n"
+            )
+    else:
+        product_inventory = "No active policies available right now."
 
-# Add this at the bottom of the file
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-LOGIN_REDIRECT_URL = '/dashboard/' # Send user to dashboard after login
-LOGOUT_REDIRECT_URL = '/'
-ROOT_URLCONF = 'insurance_bot.urls'
+    prompt = ""
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # ✅ allows global template directory if you use one
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+    # ====================================================
+    # SCENARIO 1: SURVEY & CONSULTATION FLOW
+    # ====================================================
+    if any(keyword in user_message.lower() for keyword in start_survey_keywords) and 'survey_state' not in request.session:
+        request.session['survey_state'] = {'step': 1, 'answers': {}}
+        return JsonResponse({"botResponse": questions[1]})
 
-WSGI_APPLICATION = 'insurance_bot.wsgi.application'
+    if 'survey_state' in request.session:
+        state = request.session['survey_state']
+        current_step = state['step']
+        state['answers'][f'q{current_step}'] = user_message 
+        
+        # IF SURVEY COMPLETE -> PITCH THE PRODUCT
+        if current_step >= len(questions) - 1:
+            prompt = f"""
+            **ACT AS:** A senior, empathetic human insurance agent named BimaSakhi.
+            **LANGUAGE:** {language_name} ONLY.
+            
+            **THE USER'S NEEDS (Survey Results):**
+            {json.dumps(state['answers'])}
 
-# Database
-DATABASES = {
-    'default': dj_database_url.config(
-        # Replace this with your variable name if different
-        default=os.environ.get('DATABASE_URL'), 
-        conn_max_age=600
-    )
-}
+            **YOUR INVENTORY:**
+            {product_inventory}
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+            **YOUR GOAL:** Don't just list products. **SELL** the solution. explain WHY these specific plans fit their age, income, and family status.
 
-# ✅ Internationalization (fixed typo: USE_I18N)
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'  # set to India timezone (you can adjust)
-USE_I18N = True
-USE_TZ = True
+            **RESPONSE FORMAT (Strict HTML):**
+            1. **The Hook:** "Thank you for sharing details. Based on your family size/income, I highly recommend these 2 plans to secure your future:"
+            
+            2. **The Pitch (Repeat for top 2 recommendations):**
+               <div class="product-card">
+                  <h3>[Product Name]</h3>
+                  <ul>
+                      <li><b>Why I chose this for you:</b> [Connect to their specific survey answer]</li>
+                      <li><b>Real Benefit:</b> [e.g., "If you get sick, we pay the hospital directly."]</li>
+                      <li><b>Cost:</b> Just ₹[Premium] per year.</li>
+                  </ul>
+                  <br>
+                  <a href="/purchase/?product_id=ID" class="cta-button">View Plan & Buy</a>
+               </div>
+               <br>
+            
+            3. **The Close:** "Shall we proceed with the first one? It offers the best value for your family."
+            """
+            del request.session['survey_state']
+            history = [] 
+        else:
+            next_step = current_step + 1
+            state['step'] = next_step
+            request.session['survey_state'] = state
+            return JsonResponse({"botResponse": questions[next_step]})
+    
+    # ====================================================
+    # SCENARIO 2: GENERAL CONVERSATION & OBJECTION HANDLING
+    # ====================================================
+    else:
+        user_policies = Policy.objects.filter(user=user)
+        user_context = "User's Policies: " + (", ".join([p.product.name for p in user_policies]) if user_policies else "None")
+        
+        prompt = f"""
+        **SYSTEM INSTRUCTION:** You are BimaSakhi, the best insurance agent in the village. You are talking to a rural customer in {language_name}.
+        
+        **KNOWLEDGE BASE:** {product_inventory}
+        **USER CONTEXT:** {user_context}
+        **USER SAYS:** "{user_message}"
+        
+        **YOUR BEHAVIOR GUIDELINES:**
+        1. **BE A HUMAN AGENT:** - Use simple analogies. "Insurance is like a spare tyre for your life."
+           - If they say "It's too expensive", say: "I understand. But think of it as buying seeds. A small cost now saves your entire land later."
+           
+        2. **VISUAL AIDS (CRITICAL):**
+           - If explaining a complex process (e.g., Claims, Coverage Types), you MUST insert a diagram tag.
+           - Example: "Here is how the claim process works: " or "See the difference here: ".
+           - Place this tag immediately after the explanation.
 
-import os
-from pathlib import Path
+        3. **ALWAYS BE CLOSING (ABC):**
+           - Never just give information. Always follow up with a specific product recommendation.
+           - "We have the **[Product Name]** that solves exactly this."
+           - <a href="/purchase/?product_id=ID" class="cta-button">Check Premium</a>
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+        4. **FORMAT:** Use <b>bold</b> for key terms. Use bullet points.
+        """
 
-# URL to use when referring to static files (where they will be served from)
-STATIC_URL = 'static/'
+    # ====================================================
+    # API CALL (Fixed: gemini-1.5-flash & Retry Logic)
+    # ====================================================
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    
+    # Prepare History
+    api_contents = []
+    for entry in history:
+        if isinstance(entry, dict) and 'role' in entry and 'parts' in entry:
+            api_contents.append(entry)
 
-# Where your static files live during development (e.g., inside your 'static' folder)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'), 
-]
+    # Add Prompt
+    api_contents.append({"role": "user", "parts": [{"text": prompt}]})
+    
+    # Config: Higher token limit for detailed selling
+    payload = {
+        "contents": api_contents,
+        "generationConfig": {
+            "temperature": 0.4, 
+            "maxOutputTokens": 2000, 
+        }
+    }
 
-# Where Django collects all static files for production (WhiteNoise serves from here)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # --- ROBUST RETRY LOOP ---
+    max_retries = 3
+    bot_message = "Network error. Please try again."
 
-# Enable WhiteNoise's file compression and caching
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            
+            data = response.json()
+            if 'candidates' in data and data['candidates']:
+                bot_message = data['candidates'][0]['content']['parts'][0]['text']
+                
+                # Update Session History
+                api_contents.pop() # Remove system prompt
+                api_contents.append({"role": "user", "parts": [{"text": user_message}]})
+                api_contents.append({"role": "model", "parts": [{"text": bot_message}]})
+                request.session['history'] = api_contents[-6:]
+                break 
+            
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 429:
+                # Exponential Backoff for Rate Limits
+                wait_time = (2 ** attempt) + random.uniform(0, 1)
+                print(f"Rate limit hit. Retrying in {wait_time:.2f}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"API Error: {e}")
+                bot_message = "My connection is weak right now. Please ask again in a moment."
+                break
+        except Exception as e:
+            print(f"Server Error: {e}")
+            break
 
-# ✅ Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    return JsonResponse({"botResponse": bot_message})
 
-ACCOUNT_USERNAME_REQUIRED = False      # Don't ask for username during signup
-ACCOUNT_AUTHENTICATION_METHOD = 'email' # Users log in with email
-ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
-ACCOUNT_UNIQUE_EMAIL = True            # Ensure emails are unique
-ACCOUNT_EMAIL_VERIFICATION = 'none'    # Skip email verification for simplicity (can change to 'mandatory' later)
-# ------------------------------------------------
-ACCOUNT_LOGOUT_ON_GET = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
-# Ensure this is still True
-SOCIALACCOUNT_AUTO_SIGNUP = True
+@csrf_exempt
+@login_required
+def set_language(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        request.session['language'] = data.get('language', 'en')
+        if 'history' in request.session: del request.session['history']
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required
+def speak_text(request):
+    """
+    Converts text to speech using Google's TTS API server-side 
+    and streams the audio buffer (Vercel Safe).
+    """
+    text = request.GET.get('text', '')
+    lang = request.GET.get('lang', 'en')
+
+    if not text:
+        return JsonResponse({'error': 'No text provided'}, status=400)
+
+    lang_code = lang.split('-')[0] 
+
+    try:
+        # Generate Speech
+        tts = gTTS(text=text, lang=lang_code, slow=False)
+        
+        # Save to memory buffer (No file system access needed)
+        audio_data = BytesIO()
+        tts.write_to_fp(audio_data)
+        audio_data.seek(0)
+
+        # Return as audio response
+        response = HttpResponse(audio_data, content_type='audio/mpeg')
+        response['Content-Disposition'] = 'inline; filename="speech.mp3"'
+        return response
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+# --- AUTH VIEWS ---
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid(): 
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else: 
+        form = UserCreationForm()
+    return render(request, 'chatbot/register.html', {'form': form})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
+            if user is not None:
+                login(request, user)
+                return redirect('dashboard')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'chatbot/login.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
