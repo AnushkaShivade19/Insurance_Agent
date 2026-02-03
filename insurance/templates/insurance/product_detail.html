@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'insurance/css/products.css' %}">
+    
+    <style>
+        /* --- Page Layout Styles --- */
+        .detail-header {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 30px; margin-bottom: 30px;
+        }
+        .detail-icon {
+            width: 100px; height: 100px; background: #eff6ff;
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+        }
+        .detail-icon img { width: 60px; height: 60px; object-fit: contain; }
+        
+        /* Voice Box */
+        .voice-box {
+            background: #fffbeb; border: 1px solid #fcd34d;
+            padding: 20px; border-radius: 15px; margin-bottom: 30px;
+            display: flex; align-items: center; gap: 20px;
+        }
+        
+        .feature-list li { margin-bottom: 10px; padding-left: 25px; position: relative; }
+        .feature-list li::before {
+            content: "✓"; color: var(--success-green);
+            font-weight: bold; position: absolute; left: 0;
+        }
+
+        /* --- NEW BUTTON STYLES --- */
+        .btn-sakhi {
+            background: linear-gradient(135deg, #6366f1, #4f46e5); /* Indigo for AI */
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+        .btn-sakhi:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3); }
+
+        .btn-agent-outline {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #374151;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-agent-outline:hover { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
+
+        /* Responsive */
+        .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        @media (max-width: 768px) {
+            .detail-header { flex-direction: column; text-align: center; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px; max-width: 1100px;">
+    
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'products' %}" style="text-decoration: none; color: #666;">&larr; Back to all plans</a>
+    </div>
+
+    <div class="detail-header">
+        <div class="detail-icon">
+            {% if product.icon %}
+                <img src="{{ product.icon.url }}" alt="Icon">
+            {% else %}
+                <img src="https://cdn-icons-png.flaticon.com/512/2966/2966334.png" alt="Icon">
+            {% endif %}
+        </div>
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                <div>
+                    <h1 style="color: #1e3a8a; margin: 0 0 10px 0;">{{ product.name }}</h1>
+                    <span class="category-badge badge-{{ product.product_type|lower }}">{{ product.get_product_type_display }}</span>
+                </div>
+                
+                <form method="get" id="langForm" style="margin-top: 10px;">
+                    <select name="lang" onchange="document.getElementById('langForm').submit()" 
+                            style="padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-weight: 500;">
+                        <option value="en" {% if selected_lang == 'en' %}selected{% endif %}>English</option>
+                        <option value="hi" {% if selected_lang == 'hi' %}selected{% endif %}>Hindi</option>
+                        <option value="mr" {% if selected_lang == 'mr' %}selected{% endif %}>Marathi</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        
+        <div>
+            <div class="voice-box">
+                <div style="background: #f59e0b; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: white;">
+                    <i data-feather="volume-2"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0 0 5px 0;">
+                        {% if selected_lang == 'hi' %} विवरण सुनें (Listen)
+                        {% elif selected_lang == 'mr' %} माहिती ऐका (Listen)
+                        {% else %} Listen to Plan Details
+                        {% endif %}
+                    </h4>
+                    
+                    <audio controls style="width: 100%; height: 35px; margin-top: 5px;">
+                        <source src="{% url 'product_audio' product.pk %}?lang={{ selected_lang }}&t={% now 'U' %}" type="audio/mpeg">
+                        Your browser does not support audio.
+                    </audio>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 30px; border-radius: 20px; margin-bottom: 30px;">
+                <h3 style="color: #1e3a8a; margin-bottom: 20px;">About this Plan</h3>
+                <p style="font-size: 1.1rem; line-height: 1.6; color: #4b5563;">
+                    {{ description|linebreaksbr }}
+                </p>
+
+                <h3 style="color: #1e3a8a; margin: 30px 0 20px;">Key Benefits</h3>
+                <ul class="feature-list" style="list-style: none; padding: 0; color: #4b5563; font-size: 1.05rem;">
+                    {{ features|linebreaks }}
+                </ul>
+            </div>
+        </div>
+
+        <div>
+            <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #eee; position: sticky; top: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #666;">Yearly Premium</p>
+                    <h2 style="color: #1e3a8a; font-size: 2.5rem; margin: 5px 0;">₹{{ product.base_premium }}</h2>
+                </div>
+
+                <form action="{% url 'buy_policy' product.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-buy" style="margin-bottom: 20px;">
+                        Buy Policy Now
+                    </button>
+                </form>
+
+                <div style="border-top: 1px solid #eee; margin: 0 -30px 20px; padding: 0 30px;"></div>
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px; text-align: center;">Have Questions?</p>
+
+                <a href="{% url 'chat' %}?context={{ product.name|urlencode }}" class="btn-sakhi">
+                    <i data-feather="message-circle"></i> Chat with Sakhi (AI)
+                </a>
+
+                <button class="btn-agent-outline" 
+                    data-id="{{ product.pk }}" 
+                    data-name="{{ product.name }}">
+                    <i data-feather="phone-call"></i> Request Agent Call
+                </button>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9rem; color: #666;">
+                    <p style="margin-bottom: 5px;"><strong>Coverage:</strong> ₹{{ product.coverage_amount }}</p>
+                    <p style="margin-bottom: 5px;"><strong>Entry Age:</strong> {{ product.min_entry_age }} - {{ product.max_entry_age }} years</p>
+                    <p style="margin: 0;"><strong>Policy Term:</strong> 1 Year (Renewable)</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal-overlay" id="agentModal">
+    <div class="agent-modal">
+        <button class="close-modal">&times;</button>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 60px; height: 60px; background: #fffbeb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                <i data-feather="phone-call" style="color: #f59e0b;"></i>
+            </div>
+            <h3 class="modal-title">Talk to an Expert Agent</h3>
+            <p>Get a callback for <strong id="modalProductName">Insurance</strong></p>
+        </div>
+
+        <form method="POST" id="agentRequestForm">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" id="modalProductId">
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Phone Number</label>
+                <input type="text" name="phone" required placeholder="+91 XXXXX XXXXX" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Preferred Language</label>
+                <select name="language" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <option value="Hindi">Hindi</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="English">English</option>
+                </select>
+            </div>
+
+            <button type="submit" style="width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Request Call Back
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'insurance/js/products.js' %}"></script>
+    <script>
+        // Initialize Feather Icons
+        if (typeof feather !== 'undefined') feather.replace();
+
+        // Modal Logic
+        const modal = document.getElementById('agentModal');
+        const btns = document.querySelectorAll('.btn-agent-outline'); 
+        const close = document.querySelector('.close-modal');
+        const nameSpan = document.getElementById('modalProductName');
+        const productIdInput = document.getElementById('modalProductId');
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                nameSpan.innerText = btn.getAttribute('data-name');
+                // Ensure product ID is passed to the modal input
+                if(productIdInput) {
+                    productIdInput.value = btn.getAttribute('data-id'); 
+                }
+                modal.classList.add('active');
+            });
+        });
+
+        if(close) {
+            close.addEventListener('click', () => modal.classList.remove('active'));
+        }
+        
+        window.addEventListener('click', (e) => {
+            if (e.target == modal) modal.classList.remove('active');
+        });
+    </script>
+{% endblock %}

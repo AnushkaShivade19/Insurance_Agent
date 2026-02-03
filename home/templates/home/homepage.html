@@ -1,348 +1,143 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BimaSakhi - Your Rural Insurance Partner</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>
-        :root {
-            --primary-color: #D9534F; /* Terracotta Red */
-            --secondary-color: #1e3a8a; /* Deep Indigo Blue */
-            --accent-color: #F0AD4E; /* Marigold Yellow */
-            --bg-color: #FFFDF5; /* Warm Off-White */
-            --text-color: #3D3D3D;
-            --font-serif: 'Lora', serif;
-            --font-sans: 'Poppins', sans-serif;
-        }
-        body {
-            font-family: var(--font-sans); margin: 0; background-color: var(--bg-color); color: var(--text-color);
-            line-height: 1.7;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        
-        /* --- NAVIGATION BAR --- */
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 0;
-            background-color: #fff; box-shadow: 0 3px 20px rgba(0,0,0,0.08);
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .navbar .logo {
-            font-family: var(--font-serif); font-size: 1.9rem; font-weight: 700;
-            color: var(--secondary-color); text-decoration: none;
-        }
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a {
-            margin-left: 1.8rem; text-decoration: none; color: var(--text-color);
-            font-weight: 500; transition: color 0.2s;
-        }
-        .nav-links a:hover { color: var(--primary-color); }
-        .cta-button {
-            background-color: var(--primary-color); color: #fff !important; padding: 12px 28px;
-            border-radius: 50px; text-decoration: none; transition: background-color 0.3s, transform 0.2s;
-            margin-left: 2rem; font-weight: 600; display: inline-block;
-        }
-        .cta-button:hover { background-color: #c9302c; transform: translateY(-2px); }
 
-        /* --- PROFILE DROPDOWN (UI FIX) --- */
-        .profile-dropdown { position: relative; margin-left: 2rem; }
-        .profile-btn {
-            background-color: #f0f4f8; border: 1px solid #ddd;
-            border-radius: 50px; padding: 6px 8px 6px 16px; /* Adjusted padding */
-            display: flex; align-items: center; cursor: pointer;
-            color: var(--secondary-color); font-weight: 600; font-size: 0.95rem;
-            transition: box-shadow 0.2s;
-        }
-        .profile-btn:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .profile-btn .feather {
-            margin-left: 10px; background-color: var(--secondary-color);
-            color: white; padding: 6px; border-radius: 50%; width: 32px; height: 32px;
-        }
-        .dropdown-menu {
-            position: absolute; top: 130%; right: 0; background: #fff; border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.15); width: 200px; z-index: 100;
-            overflow: hidden; display: none;
-        }
-        .dropdown-menu.active { display: block; }
-        .dropdown-menu a { display: block; padding: 12px 20px; margin: 0; color: var(--text-color); font-size: 0.95rem; }
-        .dropdown-menu a:hover { background-color: #f0f4f8; color: var(--secondary-color); }
-        .dropdown-menu a.logout-link { border-top: 1px solid #eee; color: var(--primary-color); }
-        
-        /* --- HERO SECTION --- */
-        .hero { display: flex; align-items: center; justify-content: space-between; padding: 7rem 0; min-height: 85vh; text-align: left; }
-        .hero-text { flex: 1; margin-right: 3rem; animation: slideInLeft 1s ease-out; }
-        .hero-text h1 { font-family: var(--font-serif); font-size: 4.2rem; color: var(--secondary-color); line-height: 1.15; margin-bottom: 1.8rem; }
-        .hero-text .highlight { color: var(--primary-color); }
-        .hero-text p { font-size: 1.35rem; max-width: 600px; margin-bottom: 3rem; line-height: 1.7; color: #555; }
-        .hero-image { flex: 1; text-align: right; animation: fadeInRight 1s ease-out; }
-        .hero-image img {
-            max-width: 100%; height: 450px; border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(30, 58, 138, 0.25);
-            border: 5px solid white; object-fit: cover;
-        }
-        
-        /* --- GENERAL SECTION STYLING --- */
-        .section { padding: 6rem 0; }
-        .section-title {
-            text-align: center; font-family: var(--font-serif); font-size: 3.2rem;
-            margin-bottom: 5rem; color: var(--secondary-color); position: relative;
-        }
-        .section-title::after {
-            content: ''; position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%);
-            width: 80px; height: 5px; background-color: var(--accent-color); border-radius: 3px;
-        }
+{% block title %}BimaSakhi - Your Rural Insurance Partner{% endblock %}
 
-        /* --- "HOW IT WORKS" SECTION --- */
-        .how-it-works { background-color: #fff; }
-        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: center; }
-        .step { padding: 2.5rem 1.5rem; border-radius: 15px; transition: transform 0.3s, box-shadow 0.3s; }
-        .step:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .step-icon-wrapper {
-            width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-color), #ffc107);
-            display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 20px rgba(240, 173, 78, 0.4);
-        }
-        .step .feather { color: #fff; stroke-width: 2; width: 36px; height: 36px; }
-        .step h3 { font-size: 1.5rem; color: var(--secondary-color); margin-bottom: 1rem; }
-        .step p { font-size: 1rem; line-height: 1.6; color: #666; }
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+{% endblock %}
 
-        /* --- "PRODUCT PREVIEW" SECTION --- */
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .product-card {
-            background: #fff; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            overflow: hidden; text-decoration: none; color: var(--text-color);
-            display: flex; flex-direction: column; transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .product-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-        .product-card-header { background-color: var(--secondary-color); color: #fff; padding: 1.5rem; }
-        .product-card-header h3 { margin: 0; font-size: 1.5rem; font-family: var(--font-serif); }
-        .product-card-header p { font-size: 1rem; opacity: 0.8; margin: 0; }
-        .product-card-body { padding: 1.5rem; flex-grow: 1; }
-        .product-card-body p { font-size: 0.95rem; line-height: 1.7; }
+{% block content %}
 
-        /* --- "SUCCESS STORIES" SECTION --- */
-        .stories { background-color: #fff; }
-        .story-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; }
-        .story-card {
-            background: var(--bg-color); border-radius: 15px; overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .story-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-        .story-card img { width: 100%; height: 220px; object-fit: cover; }
-        .story-content { padding: 1.8rem; }
-        .story-content blockquote {
-            font-style: italic; font-size: 1.1rem; color: #555;
-            border-left: 4px solid var(--accent-color);
-            padding-left: 1rem; margin: 0 0 1rem 0;
-        }
-        .story-content cite { font-style: normal; font-weight: 600; color: var(--secondary-color); }
-        
-        /* --- "FEATURED ARTICLE" SECTION --- */
-        .featured-article { display: flex; align-items: center; gap: 3rem; background: #fff; padding: 4rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-        .article-image { flex-basis: 40%; }
-        .article-image img { width: 100%; border-radius: 15px; object-fit: cover; height: 300px; }
-        .article-text { flex-basis: 60%; }
-        .article-text h2 { font-family: var(--font-serif); font-size: 2.2rem; color: var(--secondary-color); margin-top: 0; }
-        .article-text p { font-size: 1.1rem; color: #555; }
-        .article-text .cta-button { background-color: var(--secondary-color); margin-left: 0; }
-        .article-text .cta-button:hover { background-color: #1a2c6d; }
-
-        /* --- FINAL CTA --- */
-        .final-cta { background: linear-gradient(135deg, var(--secondary-color) 0%, #2a4e9b 100%); color: #fff; padding: 7rem 0; text-align: center; }
-        .final-cta h2 { font-family: var(--font-serif); font-size: 3.5rem; margin-bottom: 2.5rem; line-height: 1.2; }
-        .final-cta .cta-button { background-color: var(--accent-color); color: var(--secondary-color) !important; padding: 18px 45px; font-size: 1.4rem; border-radius: 60px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-        .final-cta .cta-button:hover { background-color: #e09f2a; transform: translateY(-3px); }
-
-        .footer { background-color: #1a2c6d; color: #eee; text-align: center; padding: 3rem 0; font-size: 0.95rem; }
-        @keyframes slideInLeft { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeInRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container navbar">
-            <a href="{% url 'homepage' %}" class="logo">BimaSakhi</a>
-            <nav class="nav-links">
-                <a href="{% url 'products' %}">Products</a>
-                <a href="{% url 'agents' %}">Agents</a>
-                <a href="{% url 'knowledge_hub' %}">Learn</a>
-                
-                {% if user.is_authenticated %}
-                    <div class="profile-dropdown">
-                        <div class="profile-btn" id="profileBtn">
-                            <span>{{ user.username }}</span>
-                            <i data-feather="user"></i>
-                        </div>
-                        <div class="dropdown-menu" id="dropdownMenu">
-                            <a href="{% url 'dashboard' %}">My Dashboard</a>
-                            <a href="{% url 'profile' %}">My Profile</a>
-                            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
-                        </div>
-                    </div>
-                {% else %}
-                    <a href="{% url 'login' %}">Login</a>
-                    <a href="{% url 'chat' %}" class="cta-button">Talk to Sakhi</a>
-                {% endif %}
-            </nav>
+    <section class="hero">
+        <div class="container hero">
+            <div class="hero-text">
+                <h1>Financial Security,<br><span class="highlight">Rooted in Trust.</span></h1>
+                <p>Your personal guide to understanding and choosing the right insurance. Simple advice, in your own language, for a secure future.</p>
+                <a href="{% url 'chat' %}" class="cta-button" style="font-size: 1.2rem;">Start Your Conversation</a>
+            </div>
+            <div class="hero-image">
+                <img src="{% static 'momkid.jpg' %}" alt="A happy rural Indian mother and child">
+            </div>
         </div>
-    </header>
+    </section>
 
-    <main>
-        <!-- Hero Section -->
-        <section class="hero">
-            <div class="container hero">
-                <div class="hero-text">
-                    <h1>Financial Security,<br><span class="highlight">Rooted in Trust.</span></h1>
-                    <p>Your personal guide to understanding and choosing the right insurance. Simple advice, in your own language, for a secure future.</p>
-                    <a href="{% url 'chat' %}" class="cta-button" style="font-size: 1.3rem; padding: 16px 38px;">Start Your Conversation</a>
+    <section class="section how-it-works">
+        <div class="container">
+            <h2 class="section-title">How BimaSakhi Empowers You</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon-wrapper"><i data-feather="message-circle"></i></div>
+                    <h3>Personalized Chatbot</h3>
+                    <p>Ask questions, understand terms, and get guided suggestions in your preferred regional language.</p>
                 </div>
-                <div class="hero-image">
-                    <img src="{% static 'momkid.jpg' %}" alt="A happy rural Indian mother and child">
+                <div class="step">
+                    <div class="step-icon-wrapper"><i data-feather="award"></i></div>
+                    <h3>Tailored Recommendations</h3>
+                    <p>Complete a simple survey to receive insurance product suggestions perfectly matched to your needs.</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon-wrapper"><i data-feather="users"></i></div>
+                    <h3>Local Agent Connect</h3>
+                    <p>Find and connect with trusted, verified insurance agents right in your local community.</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon-wrapper"><i data-feather="shield"></i></div>
+                    <h3>Easy Policy Management</h3>
+                    <p>Track your active policies, monitor claims, and stay informed about renewals, all in one place.</p>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
+    
+    <section class="section product-preview" style="background-color: var(--bg-color);">
+        <div class="container">
+            <h2 class="section-title">Insurance Made Simple</h2>
+            <div class="product-grid">
+                {% if products %}
+                    {% for product in products %}
+                    <a href="{% url 'products' %}" class="product-card">
+                        <div class="product-card-header">
+                            <h3>{{ product.name }}</h3>
+                            <p>{{ product.get_product_type_display }}</p>
+                        </div>
+                        <div class="product-card-body">
+                            <p>{{ product.description|truncatewords:20 }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; grid-column: 1/-1;">Our insurance products will be listed here soon!</p>
+                {% endif %}
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="{% url 'products' %}" class="cta-button" style="background-color: var(--secondary-color);">See All Products</a>
+            </div>
+        </div>
+    </section>
 
-        <!-- How It Works Section -->
-        <section class="section how-it-works">
-            <div class="container">
-                <h2 class="section-title">How BimaSakhi Empowers You</h2>
-                <div class="steps">
-                    <div class="step">
-                        <div class="step-icon-wrapper"><i data-feather="message-circle"></i></div>
-                        <h3>Personalized Chatbot</h3>
-                        <p>Ask questions, understand terms, and get guided suggestions in your preferred regional language.</p>
+    <section class="section stories">
+        <div class="container">
+            <h2 class="section-title">Stories of Trust & Security</h2>
+            <div class="story-grid">
+                <div class="story-card">
+                    <img src="{% static 'rural.jpg' %}" alt="Confident farmer">
+                    <div class="story-content">
+                        <blockquote>"After the drought, the crop insurance I chose with BimaSakhi's help was our only saving grace."</blockquote>
+                        <cite>— Rajendra Singh, Farmer, Rajasthan</cite>
                     </div>
-                    <div class="step">
-                        <div class="step-icon-wrapper"><i data-feather="award"></i></div>
-                        <h3>Tailored Recommendations</h3>
-                        <p>Complete a simple survey to receive insurance product suggestions perfectly matched to your needs.</p>
+                </div>
+                <div class="story-card">
+                    <img src="{% static 'rural-insurance.jpg' %}" alt="Shop owner">
+                    <div class="story-content">
+                        <blockquote>"My husband's health policy was confusing, but the chatbot explained everything in Marathi."</blockquote>
+                        <cite>— Priya Patil, Shop Owner, Maharashtra</cite>
                     </div>
-                    <div class="step">
-                        <div class="step-icon-wrapper"><i data-feather="users"></i></div>
-                        <h3>Local Agent Connect</h3>
-                        <p>Find and connect with trusted, verified insurance agents right in your local community.</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-icon-wrapper"><i data-feather="shield"></i></div>
-                        <h3>Easy Policy Management</h3>
-                        <p>Track your active policies, monitor claims, and stay informed about renewals, all in one place.</p>
+                </div>
+                <div class="story-card">
+                    <img src="{% static 'download.jpg' %}" alt="Young farmer">
+                    <div class="story-content">
+                        <blockquote>"Getting my tractor insured was easy. I just talked to the bot, found a local agent, and got it done."</blockquote>
+                        <cite>— Karthik Yadav, Youth Farmer, Punjab</cite>
                     </div>
                 </div>
             </div>
-        </section>
-        
-        <!-- Product Preview Section -->
-        <section class="section product-preview" style="background-color: var(--bg-color);">
-            <div class="container">
-                <h2 class="section-title">Insurance Made Simple</h2>
-                <div class="product-grid">
-                    {% if products %}
-                        {% for product in products %}
-                        <a href="{% url 'products' %}" class="product-card">
-                            <div class="product-card-header">
-                                <h3>{{ product.name }}</h3>
-                                <p>{{ product.get_product_type_display }}</p>
-                            </div>
-                            <div class="product-card-body">
-                                <p>{{ product.description|truncatewords:20 }}</p>
-                            </div>
-                        </a>
-                        {% endfor %}
+        </div>
+    </section>
+
+    {% if article %}
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">From Our Knowledge Hub</h2>
+            <div class="featured-article">
+                <div class="article-image">
+                    {% if article.featured_image %}
+                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
                     {% else %}
-                        <p style="text-align: center;">Our insurance products will be listed here soon!</p>
+                        <div style="width:100%; height:300px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; border-radius:15px; border:2px dashed #cbd5e1;">
+                            <span style="color:#64748b; font-weight:600;">No Image Available</span>
+                        </div>
                     {% endif %}
                 </div>
-                <div style="text-align: center; margin-top: 3rem;">
-                    <a href="{% url 'products' %}" class="cta-button" style="background-color: var(--secondary-color);">See All Products</a>
+                <div class="article-text">
+                    <h2>{{ article.title }}</h2>
+                    <p>{{ article.content|truncatewords:30 }}</p>
+                    <a href="{% url 'knowledge_hub' %}" class="cta-button" style="background-color: var(--secondary-color);">Read More Articles</a>
                 </div>
             </div>
-        </section>
-
-        <!-- Success Stories Section -->
-        <section class="section stories" style="background-color: #fff;">
-            <div class="container">
-                <h2 class="section-title">Stories of Trust & Security</h2>
-                <div class="story-grid">
-                    <!-- Story 1 -->
-                    <div class="story-card">
-                        <img src="{% static 'rural.jpg' %}" alt="Confident farmer in his field">
-                        <div class="story-content">
-                            <blockquote>"After the drought, the crop insurance I chose with BimaSakhi's help was our only saving grace. They made the process simple to understand."</blockquote>
-                            <cite>— Rajendra Singh, Farmer, Rajasthan</cite>
-                        </div>
-                    </div>
-                    <!-- Story 2 -->
-                    <div class="story-card">
-                        <img src="{% static 'rural-insurance.jpg' %}" alt="Small business owner in her shop">
-                        <div class="story-content">
-                            <blockquote>"My husband's health policy was confusing, but the chatbot explained everything in Marathi. We could finally make a confident choice."</blockquote>
-                            <cite>— Priya Patil, Shop Owner, Maharashtra</cite>
-                        </div>
-                    </div>
-                    <!-- Story 3 -->
-                    <div class="story-card">
-                        <img src="{% static 'download.jpg' %}" alt="Young man with his new tractor">
-                        <div class="story-content">
-                            <blockquote>"Getting my tractor insured was easy. I just talked to the bot, found a local agent, and got it done in a day. No more worries."</blockquote>
-                            <cite>— Karthik Yadav, Youth Farmer, Punjab</cite>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Featured Article Section -->
-        {% if article %}
-        <section class="section">
-            <div class="container">
-                <h2 class="section-title">From Our Knowledge Hub</h2>
-                <div class="featured-article">
-                    <div class="article-image">
-                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
-                    </div>
-                    <div class="article-text">
-                        <h2>{{ article.title }}</h2>
-                        <p>{{ article.content|truncatewords:30 }}</p>
-                        <a href="{% url 'knowledge_hub' %}" class="cta-button" style="background-color: var(--secondary-color);">Read More Articles</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-        {% endif %}
-
-        <!-- Final CTA Section -->
-        <section class="section final-cta">
-            <div class="container">
-                <h2>Ready to Build a Secure Future for Your Family?</h2>
-                <a href="{% url 'chat' %}" class="cta-button">Talk to Your Sakhi Now</a>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 BimaSakhi. Securing Rural India's Future, One Family at a Time.</p>
         </div>
-    </footer>
-    <script>
-        feather.replace(); // This will render the icons
-        
-        // JavaScript for profile dropdown
-        const profileBtn = document.getElementById('profileBtn');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-        if (profileBtn) {
-            profileBtn.addEventListener('click', () => dropdownMenu.classList.toggle('active'));
-            window.addEventListener('click', (e) => {
-                if (!profileBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                    dropdownMenu.classList.remove('active');
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+    </section>
+    {% endif %}
+
+    <section class="section final-cta">
+        <div class="container">
+            <h2>Ready to Build a Secure Future for Your Family?</h2>
+            <a href="{% url 'chat' %}" class="cta-button" style="background-color: var(--accent-color); color: var(--secondary-color) !important;">Talk to Your Sakhi Now</a>
+        </div>
+    </section>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/homepage.js' %}"></script>
+{% endblock %}

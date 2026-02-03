@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %} 
+
+{% block title %}Insurance Products - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'insurance/css/products.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="market-header">
+    <h1>Protect Your Future</h1>
+    <p>Choose from our wide range of insurance plans tailored for you.</p>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-chip {% if not selected_category %}active{% endif %}" data-category="ALL">
+        <span>All Plans</span>
+    </div>
+    {% for code, name in categories %}
+    <div class="filter-chip {% if selected_category == code %}active{% endif %}" data-category="{{ code }}">
+        <span>{{ name }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="product-grid">
+    {% for product in products %}
+    <div class="product-card">
+        <div class="card-top">
+            <div class="product-icon">
+                {% if product.icon %}
+                    <img src="{{ product.icon.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966334.png" alt="Icon">
+                {% endif %}
+            </div>
+            <span class="category-badge badge-{{ product.product_type|lower }}">
+                {{ product.get_product_type_display }}
+            </span>
+        </div>
+
+        <div class="card-body">
+            <h3 class="product-title">{{ product.name }}</h3>
+            <p class="product-desc">{{ product.description|truncatewords:20 }}</p>
+        </div>
+
+        <div class="price-section">
+            <div class="price-box">
+                <small>Premium starts at</small>
+                <span class="price-amount">₹{{ product.base_premium }}</span>
+            </div>
+        </div>
+
+        <div class="card-actions">
+            <a href="{% url 'product_detail' product.pk %}" class="btn-details">Details</a>
+            
+            <form action="{% url 'buy_policy' product.pk %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-buy">Buy Now</button>
+            </form>
+
+            <button class="btn-agent" 
+                data-id="{{ product.pk }}" 
+                data-name="{{ product.name }}">
+                Talk to Agent
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; width: 100%; grid-column: 1 / -1; padding: 40px;">
+        <h3>No products found in this category.</h3>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal-overlay" id="agentModal">
+    <div class="agent-modal">
+        <button class="close-modal">&times;</button>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 60px; height: 60px; background: #fffbeb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                <i data-feather="phone-call" style="color: #f59e0b;"></i>
+            </div>
+            <h3 class="modal-title">Request a Call</h3>
+            <p>Interested in <strong id="modalProductName">Insurance</strong>?</p>
+        </div>
+
+        <form method="POST" id="agentRequestForm">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" id="modalProductId">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Your Phone Number</label>
+                <input type="text" name="phone" required placeholder="+91 XXXXX XXXXX" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px;">Preferred Language</label>
+                <select name="language" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <option value="Hindi">Hindi</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="English">English</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-buy">Call Me Back</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'insurance/js/products.js' %}"></script>
+    <script>if (typeof feather !== 'undefined') feather.replace();</script>
+{% endblock %}

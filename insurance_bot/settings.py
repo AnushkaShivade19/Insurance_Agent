@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'chatbot',
     'insurance', 
     'django.contrib.admin',
+    'django.contrib.humanize',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -31,6 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'allauth',
+    'claims',
+    'accounts',
+    'pwa',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
@@ -60,8 +64,13 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-LOGIN_REDIRECT_URL = '/dashboard/' # Send user to dashboard after login
-LOGOUT_REDIRECT_URL = '/'
+# Redirects
+LOGIN_REDIRECT_URL = 'dashboard'  # <--- Essential for the flow to start
+LOGOUT_REDIRECT_URL = 'login'
+
+# Allauth Config
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Automatically creates user without asking for username
+SOCIALACCOUNT_LOGIN_ON_GET = True # Skips the "Are you sure?" confirmation screen
 ROOT_URLCONF = 'insurance_bot.urls'
 
 TEMPLATES = [

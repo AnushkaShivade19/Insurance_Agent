@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/claims.css' %}">
+
+<div class="container">
+    <div class="claim-card">
+        <div class="claim-header">
+            <h2>File a New Claim</h2>
+            <p>Upload your documents or use voice assistance to file instantly.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Select Policy</label>
+                
+                {% if form.policy.field.queryset.exists %}
+                    {{ form.policy }}
+                {% else %}
+                    <div style="padding: 15px; background: #fff3cd; color: #856404; border-radius: 8px; border: 1px solid #ffeeba;">
+                        <strong>No Active Policies Found!</strong><br>
+                        You cannot file a claim because you don't have any active policies purchased in this account.
+                        <br><a href="/admin/" target="_blank" style="color: #533f03; text-decoration: underline;">Admin: Assign a policy to this user first.</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Claim Amount (₹)</label>
+                    {{ form.claim_amount }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Evidence Photo</label>
+                    {{ form.evidence_image }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Incident Description</label>
+                
+                <div class="voice-section">
+                    <select id="langSelect" class="form-control" style="max-width: 200px; margin: 0 auto; text-align: center;">
+                        <option value="en-IN">English (India)</option>
+                        <option value="hi-IN">Hindi (हिन्दी)</option>
+                        <option value="mr-IN">Marathi (मराठी)</option>
+                        <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+                    </select>
+
+                    <button type="button" id="micBtn" class="mic-btn">
+                        <i data-feather="mic"></i> </button>
+                    
+                    <p id="statusText" style="color: #666; font-weight: 500;">Tap the mic to start speaking</p>
+
+                    <div style="margin-top: 15px;">
+                         {{ form.description }}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Claim Request</button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/claims.js' %}"></script>
+<script>
+    feather.replace(); // Load icons inside the mic button
+</script>
+
+{% endblock %}

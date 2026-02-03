@@ -1,0 +1,184 @@
+/* Background & Layout */
+.onboarding-wrapper {
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f6f9; /* Light grey background */
+    font-family: 'Poppins', sans-serif;
+    padding: 20px;
+}
+
+/* The Main Card */
+.big-card {
+    background: white;
+    width: 100%;
+    max-width: 500px; /* Limits width on desktop */
+    min-height: 600px;
+    border-radius: 30px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.08); /* Soft shadow */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Header */
+.card-header {
+    padding: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.lang-group {
+    background: #f0f2f5;
+    padding: 5px;
+    border-radius: 20px;
+    display: flex;
+    gap: 5px;
+}
+
+.lang-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.lang-btn.active {
+    background: #1e3a8a; /* Primary Blue */
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Body Content */
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Centers content vertically */
+    padding: 0 30px;
+    text-align: center;
+}
+
+/* The Giant Icon Circle (Red/Pink in your screenshot) */
+.icon-container {
+    width: 220px;
+    height: 220px;
+    background: #d9534f; /* The Reddish color from your screenshot */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.icon-container img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    filter: brightness(0) invert(1); /* Makes black icons white */
+}
+
+/* Question Text */
+#questionLabel {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+/* Input Styling (for fallback) */
+.custom-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+.custom-input:focus {
+    border-color: #1e3a8a;
+    outline: none;
+}
+
+.status-msg {
+    color: #888;
+    font-size: 0.95rem;
+    margin-top: 10px;
+    min-height: 24px;
+}
+
+/* Footer Controls */
+.card-footer {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    background: white; /* Ensures it sits on top */
+}
+
+/* Mic Button */
+.mic-btn {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background: #1e3a8a; /* Primary Blue */
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(30,58,138,0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mic-btn:hover { transform: scale(1.05); }
+.mic-btn:active { transform: scale(0.95); }
+
+.mic-btn.recording {
+    background: #ef4444; /* Red for recording */
+    animation: pulse 1.5s infinite;
+}
+
+/* Navigation Links */
+.manual-nav {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.nav-btn.next-btn { color: #1e3a8a; }
+
+@keyframes popIn { 
+    from { transform: scale(0.5); opacity: 0; } 
+    to { transform: scale(1); opacity: 1; } 
+}
+@keyframes pulse { 
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 
+    70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+}

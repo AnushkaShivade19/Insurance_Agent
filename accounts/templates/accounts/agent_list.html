@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Find Local Agents - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #10b981;
+        --dark-green: #047857;
+        --bg-gray: #f9fafb;
+    }
+
+    body { background-color: var(--bg-gray); }
+
+    /* --- HERO SECTION --- */
+    .agent-hero {
+        background: linear-gradient(rgba(16, 185, 129, 0.9), rgba(4, 120, 87, 0.9)), 
+                    url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 30px;
+    }
+
+    /* --- LAYOUT GRID --- */
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px 60px;
+        display: grid;
+        grid-template-columns: 280px 1fr; /* Sidebar + Content */
+        gap: 30px;
+    }
+
+    /* --- SIDEBAR FILTERS --- */
+    .filter-sidebar {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .filter-group { margin-bottom: 25px; }
+    .filter-label { font-weight: 700; display: block; margin-bottom: 10px; color: #374151; }
+    
+    .form-input, .form-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-family: inherit;
+    }
+
+    .btn-apply {
+        width: 100%;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-apply:hover { background: var(--dark-green); }
+
+    .btn-reset {
+        display: block; text-align: center; margin-top: 10px;
+        color: #6b7280; text-decoration: none; font-size: 0.9rem;
+    }
+
+    /* --- RESULTS HEADER --- */
+    .results-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 20px;
+    }
+
+    /* --- AGENT CARDS --- */
+    .agents-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .agent-card {
+        background: white;
+        border-radius: 15px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+    .agent-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+        border-color: var(--primary-green);
+    }
+
+    /* Verified Badge */
+    .verified-badge {
+        position: absolute; top: 15px; right: 15px;
+        background: #dcfce7; color: #166534;
+        font-size: 0.75rem; font-weight: 700;
+        padding: 4px 8px; border-radius: 20px;
+        display: flex; align-items: center; gap: 4px;
+    }
+
+    .card-body { padding: 25px; text-align: center; }
+
+    .agent-photo {
+        width: 90px; height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #f3f4f6;
+        margin-bottom: 15px;
+    }
+
+    .agent-name { font-size: 1.2rem; font-weight: 700; color: #1f2937; margin: 0 0 5px 0; }
+    .agent-location { color: #6b7280; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+    .stats-row {
+        display: flex; justify-content: center; gap: 15px;
+        margin: 15px 0; padding: 15px 0;
+        border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6;
+    }
+    .stat-item { text-align: center; }
+    .stat-val { font-weight: 700; color: #1f2937; display: block; }
+    .stat-label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; }
+
+    .lang-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 20px; }
+    .lang-tag {
+        background: #f3f4f6; color: #4b5563;
+        font-size: 0.75rem; padding: 4px 10px; border-radius: 4px;
+    }
+
+    .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 20px; }
+    .btn-call {
+        background: var(--primary-green); color: white;
+        padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600;
+        display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .btn-chat {
+        background: white; color: var(--dark-green); border: 1px solid var(--primary-green);
+        padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600;
+        display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .btn-chat:hover { background: #ecfdf5; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-container { grid-template-columns: 1fr; }
+        .filter-sidebar { position: relative; top: 0; margin-bottom: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="agent-hero">
+    <h1>Find Your BimaSakhi</h1>
+    <p>Connect with verified insurance experts in your state who speak your language.</p>
+</div>
+
+<div class="page-container">
+    
+    <aside class="filter-sidebar">
+        <form method="GET">
+            <h3 style="margin-top:0;">Filters</h3>
+            
+            <div class="filter-group">
+                <label class="filter-label">State</label>
+                <select name="state" class="form-select">
+                    <option value="All">All States</option>
+                    {% for state in available_states %}
+                        <option value="{{ state }}" {% if current_filters.state == state %}selected{% endif %}>
+                            {{ state }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">City</label>
+                <input type="text" name="city" value="{{ current_filters.city }}" 
+                       placeholder="e.g. Pune, Nagpur" class="form-input">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Language</label>
+                <input type="text" name="lang" value="{{ current_filters.lang }}" 
+                       placeholder="e.g. Marathi" class="form-input">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Sort By</label>
+                <select name="sort" class="form-select">
+                    <option value="rating" {% if current_filters.sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                    <option value="experience" {% if current_filters.sort == 'experience' %}selected{% endif %}>Most Experienced</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-apply">Apply Filters</button>
+            <a href="{% url 'agent_list' %}" class="btn-reset">Reset / View All</a>
+        </form>
+    </aside>
+
+    <main>
+        <div class="results-header">
+            <h2 style="margin:0;">Showing {{ agents.count }} Agents</h2>
+            <div style="font-size:0.9rem; color:#6b7280;">
+                <i data-feather="check-circle" style="width:14px;"></i> All agents are KYC Verified
+            </div>
+        </div>
+
+        <div class="agents-list">
+            {% for agent in agents %}
+            <div class="agent-card">
+                {% if agent.is_verified %}
+                <div class="verified-badge">
+                    <i data-feather="shield" style="width:12px;"></i> Verified
+                </div>
+                {% endif %}
+
+                <div class="card-body">
+                    {% if agent.photo %}
+                        <img src="{{ agent.photo.url }}" alt="{{ agent.name }}" class="agent-photo">
+                    {% else %}
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="agent-photo" alt="Default">
+                    {% endif %}
+                    
+                    <h3 class="agent-name">{{ agent.name }}</h3>
+                    <div class="agent-location">
+                        <i data-feather="map-pin" style="width:14px;"></i> {{ agent.location }}, {{ agent.state }}
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-val" style="color:#f59e0b;">{{ agent.rating }} ★</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-val">{{ agent.experience_years }} Yrs</span>
+                            <span class="stat-label">Experience</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-val">{{ agent.specialization }}</span>
+                            <span class="stat-label">Expertise</span>
+                        </div>
+                    </div>
+
+                    <div class="lang-tags">
+                        <span class="lang-tag" style="background:#f3f4f6; padding:5px 10px; border-radius:4px; font-size:0.8rem; color:#4b5563;">
+                            {{ agent.languages }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <a href="tel:{{ agent.phone_number }}" class="btn-call">
+                        <i data-feather="phone"></i> Call
+                    </a>
+                    <a href="#" class="btn-chat">
+                        <i data-feather="message-circle"></i> Chat
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center; padding:50px; grid-column:1/-1;">
+                <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="100" style="opacity:0.5; margin-bottom:20px;">
+                <h3>No agents found matching your filters.</h3>
+                <p>Try selecting "All States" or clearing your search.</p>
+                <a href="{% url 'agent_list' %}" class="btn-apply" style="display:inline-block; width:auto; padding:10px 30px;">View All Agents</a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    if (typeof feather !== 'undefined') feather.replace();
+</script>
+{% endblock %}

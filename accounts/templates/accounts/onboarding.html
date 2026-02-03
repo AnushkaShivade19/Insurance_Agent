@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Setup Profile - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/onboarding.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-wrapper">
+    
+    <form method="POST" id="realForm" style="display:none;">
+        {% csrf_token %}
+        {{ form.as_p }}
+    </form>
+
+    <div class="big-card">
+        <div class="card-header">
+            <div class="lang-group">
+                <button class="lang-btn active" onclick="setLang('en-IN')">English</button>
+                <button class="lang-btn" onclick="setLang('hi-IN')">हिंदी</button>
+                <button class="lang-btn" onclick="setLang('mr-IN')">मराठी</button>
+            </div>
+            </div>
+
+        <div class="card-body">
+            <div class="icon-container">
+                <img id="questionImage" src="" alt="Context Icon">
+            </div>
+
+            <h2 id="questionLabel">Loading...</h2>
+            
+            <div id="inputContainer" class="input-area"></div>
+
+            <p id="statusText" class="status-msg">Tap the mic to speak</p>
+        </div>
+
+        <div class="card-footer">
+            <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+                <i data-feather="mic"></i>
+            </button>
+            
+            <div class="manual-nav">
+                <button class="nav-btn" onclick="playQuestionAudio()">🔊 Listen Again</button>
+                <button class="nav-btn next-btn" onclick="manualValidate()">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>const questions = {{ questions_json|safe }};</script>
+    <script src="{% static 'js/onboarding.js' %}?v=101"></script>
+{% endblock %}

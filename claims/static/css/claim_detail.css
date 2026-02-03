@@ -1,0 +1,150 @@
+/* Reuse the main card style from claims.css, adding specific detail styles here */
+
+/* Header Section */
+.claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.claim-header h2 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 1.5rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Status Colors */
+.status-FILED { 
+    background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; 
+}
+.status-IN_REVIEW { 
+    background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; 
+}
+.status-APPROVED { 
+    background: #dcfce7; color: #166534; border: 1px solid #86efac; 
+}
+.status-REJECTED { 
+    background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; 
+}
+
+/* Description Box */
+.desc-box {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #1e3a8a;
+    font-style: italic;
+    color: #334155;
+    margin-top: 5px;
+}
+
+/* Evidence Image */
+.evidence-img {
+    width: 100%;
+    max-height: 350px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Timeline / Next Steps Section */
+.guidance-section {
+    margin-top: 35px;
+    background: #fdfdfd;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+.guidance-title {
+    color: #1e3a8a;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.step-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+    position: relative;
+}
+
+/* Vertical Line Connector (Optional Visual Flair) */
+.step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 35px;
+    bottom: -15px;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.step-number {
+    background: #1e3a8a;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+    z-index: 1; /* Keeps number above the line */
+}
+
+.step-content h4 {
+    margin: 0 0 4px 0;
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.step-content p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Action Buttons */
+.action-row {
+    margin-top: 30px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-secondary {
+    background: #64748b;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-secondary:hover { background: #475569; }
+
+/* Print Styles (Hides buttons when printing) */
+@media print {
+    .action-row, .navbar, footer { display: none; }
+    .claim-card { box-shadow: none; border: none; }
+}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %} {% block title %}Dashboard - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1rem;">
+    
+    <div class="dash-header">
+        <div>
+            <h1>Namaste, {{ user.first_name|default:user.username }}! 🙏</h1>
+            <p style="color: var(--text-light); margin-top: 5px;">Here is your insurance overview for today.</p>
+        </div>
+        
+        <a href="{% url 'chat' %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 24px; border-radius: 50px;">
+            <i data-feather="message-circle" style="width: 20px;"></i>
+            Ask Sakhi
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ policies.count }}</h3>
+            <p>Total Policies</p>
+        </div>
+        
+        <div class="stat-card" style="border-left-color: var(--success-text);">
+            <h3 style="color: var(--success-text);">{{ active_count }}</h3>
+            <p>Active Policies</p>
+        </div>
+        
+        <div class="stat-card" style="border-left-color: var(--accent-gold);">
+            <h3 style="color: var(--accent-gold);">₹{{ total_coverage|intcomma }}</h3>
+            <p>Total Coverage</p>
+        </div>
+    </div>
+
+    <div class="policy-section">
+        <h2 style="color: var(--primary-blue); font-size: 1.5rem; border-bottom: 2px solid #f3f4f6; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            Your Active Policies
+        </h2>
+        
+        {% if policies %}
+            {% for policy in policies %}
+            <div class="policy-item">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="background: #eff6ff; padding: 10px; border-radius: 50%; color: var(--primary-blue);">
+                        <i data-feather="shield"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-dark);">{{ policy.product.name }}</h4>
+                        <span style="font-size: 0.9rem; color: var(--text-light);">Policy #: {{ policy.policy_number }}</span>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div class="status-badge status-{{ policy.status|lower }}">
+                        {{ policy.get_status_display }}
+                    </div>
+                    <div style="font-size: 0.85rem; margin-top: 6px; color: var(--text-light);">
+                        Expires: {{ policy.expiry_date|date:"d M, Y" }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 2rem;">
+                <img src="{% static 'images/empty-box.svg' %}" alt="" style="width: 60px; opacity: 0.5; margin-bottom: 1rem;">
+                <p style="color: var(--text-light);">You don't have any active policies yet.</p>
+                <a href="{% url 'chat' %}" style="color: var(--primary-red); font-weight: 600; text-decoration: none;">Find a policy now &rarr;</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1.5rem;">
+        Agents Near {{ user.profile.city|default:"You" }} 📍
+    </h2>
+
+    <div class="agent-grid">
+        {% for agent in agents %}
+        <div class="agent-card">
+            <div class="agent-avatar">
+                <i data-feather="user" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h3>{{ agent.name }}</h3>
+            <p>{{ agent.city }}</p>
+            
+            <a href="tel:{{ agent.phone_number }}" class="btn-outline">
+                <i data-feather="phone" style="width: 14px; vertical-align: middle;"></i> Call Agent
+            </a>
+        </div>
+        {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; background: white; border-radius: 15px;">
+                <p>No agents found in your immediate area.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/accounts.js' %}"></script>
+    <script>
+        // Ensure icons render
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    </script>
+{% endblock %}

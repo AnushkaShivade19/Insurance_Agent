@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Register - BimaSakhi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-wrapper">
+        <div class="auth-image" style="background-image: url('{% static 'rural-insurance.jpg' %}');">
+            <div class="auth-overlay">
+                <div>
+                    <h2>Join the Family</h2>
+                    <p>Create an account to get personalized insurance advice.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-form-container">
+            <h2 class="text-center" style="color: var(--primary-blue); margin-bottom: 1.5rem;">Create Account</h2>
+            
+            <a href="{% provider_login_url 'google' %}" class="google-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="G">
+                Sign up with Google
+            </a>
+
+            <div class="divider"><span>OR REGISTER WITH EMAIL</span></div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {{ field }} {% if field.errors %}
+                            <div style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;">
+                                {{ field.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn-primary">Register</button>
+            </form>
+            
+            <p class="text-center" style="margin-top: 1.5rem;">
+                Already have an account? <a href="{% url 'login' %}" style="color: var(--primary-red); font-weight: 600;">Login</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/accounts.js' %}"></script>
+{% endblock %}

@@ -18,12 +18,28 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chat/', include('chatbot.urls')),
+    
+    # 1. Home App
     path('', include('home.urls')),
+    
+    # 2. Chatbot App
+    path('chatbot/', include('chatbot.urls')),
+    
+    # 3. Accounts App (Custom Login/Register) - THIS FIXES THE ERROR
+    path('accounts/', include('accounts.urls')), 
+    
+    # 4. Allauth (Google Login)
+    path('accounts/', include('allauth.urls')), 
+
+    path('admin/', admin.site.urls),
+    path('claims/', include('claims.urls')),
+    path('products/', include('insurance.urls')),
     path('pwa/', include('pwa.urls')),
-    path('accounts/', include('allauth.urls')),
+    path('favicon.ico', lambda request: HttpResponse(status=204)),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

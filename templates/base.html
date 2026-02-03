@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BimaSakhi - Rural Insurance Partner{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                🛡️ BimaSakhi
+            </a>
+
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="{% url 'products' %}">Products</a>
+                <a href="{% url 'agent_list' %}">Find Agents</a> <a href="{% url 'knowledge_hub' %}">Learn</a>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    
+                    <a href="{% url 'file_claim' %}" class="nav-cta">📢 File Claim</a>
+
+                    <div class="profile-dropdown">
+                        <button class="profile-btn" id="profileToggle">
+                            <span>{{ user.username|title }}</span>
+                            <i data-feather="chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="profileMenu">
+                            <a href="{% url 'profile' %}"><i data-feather="user"></i> My Profile</a>
+                            <a href="{% url 'dashboard' %}"><i data-feather="grid"></i> Dashboard</a>
+                            <div class="divider"></div>
+                            <a href="{% url 'logout' %}" class="logout"><i data-feather="log-out"></i> Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'register' %}" class="btn-primary">Get Started</a>
+                {% endif %}
+            </nav>
+
+            <div class="mobile-toggle">
+                <i data-feather="menu"></i>
+            </div>
+        </div>
+    </header>
+
+    {% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <span class="close-alert" onclick="this.parentElement.style.display='none';">&times;</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-col">
+                <h3>BimaSakhi</h3>
+                <p>Empowering rural India with simple, accessible, and trustworthy insurance solutions.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <a href="/">Home</a>
+                <a href="{% url 'products' %}">Find Insurance</a>
+                <a href="{% url 'agents' %}">Locate Agents</a>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <p>📞 1800-123-BIMA</p>
+                <p>📧 help@bimasakhi.in</p>
+                <p>📍 Pune, Maharashtra</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 BimaSakhi. Made for Bharat 🇮🇳.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/base.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
