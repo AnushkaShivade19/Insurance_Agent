@@ -1,10 +1,11 @@
 import os
 import json
+from urllib import request
 import speech_recognition as sr
 from pydub import AudioSegment
 from gtts import gTTS
 from io import BytesIO
-
+from django.db.models import Count, Sum
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -15,7 +16,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
-
+from django.utils import timezone
+from django.contrib import admin as dj_admin
+from claims import admin
 from .forms import UserRegistrationForm, OnboardingForm
 from .models import Profile, Agent
 from insurance.models import Policy
@@ -244,3 +247,95 @@ def speak_text_view(request):
         return response
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+# import json
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count, Sum
+from django.utils import timezone
+from django.contrib import admin as dj_admin  # Alias to prevent conflict
+from django.urls import reverse
+import json
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count, Sum
+from django.utils import timezone
+from django.contrib import admin as dj_admin
+from django.urls import reverse
+
+# MODELS
+from django.contrib.auth.models import User
+from accounts.models import Profile, Agent
+from claims.models import Claim
+from insurance.models import Policy, Payment, AgentRequest, FAQ
+
+@staff_member_required
+def admin_analytics_view(request):
+    if not request.user.is_superuser:
+        return dj_admin.site.index(request)
+
+    today = timezone.now().date()
+
+    # ==========================
+    # 1. LIVE METRICS (KPIs)
+    # ==========================
+    total_users = User.objects.count()
+    
+    # Financials
+    revenue_sum = Payment.objects.filter(status='SUCCESS').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_revenue = int(revenue_sum)
+
+    # Daily Activity
+    policies_sold_today = Policy.objects.filter(start_date=today).count()
+    
+    # Pending Actions
+    pending_claims_count = Claim.objects.filter(status='PENDING').count()
+    pending_policy_approvals = Policy.objects.filter(status='PENDING_APPROVAL').count()
+    
+    # Engagement
+    total_agent_requests = AgentRequest.objects.count()
+
+    # ==========================
+    # 2. CHARTS DATA
+    # ==========================
+    # Chart A: Claims Distribution
+    claim_qs = Claim.objects.values('status').annotate(total=Count('id')).order_by('status')
+    claim_labels = [c['status'].replace('_', ' ').title() for c in claim_qs]
+    claim_data = [c['total'] for c in claim_qs]
+
+    # Chart B: Policy Popularity
+    policy_qs = Policy.objects.values('product__product_type').annotate(total=Count('id')).order_by('-total')
+    policy_labels = [p['product__product_type'].replace('_', ' ').title() for p in policy_qs]
+    policy_data = [p['total'] for p in policy_qs]
+
+    # ==========================
+    # 3. ACTION TABLES
+    # ==========================
+    # A. Policies Waiting for Approval
+    pending_policies = Policy.objects.filter(status='PENDING_APPROVAL').select_related('user', 'product').order_by('-start_date')[:5]
+
+    # B. Pending Claims
+    pending_claims = Claim.objects.filter(status='PENDING').select_related('policy__user', 'policy__product').order_by('-date_filed')[:5]
+
+    context = {
+        **dj_admin.site.each_context(request),
+        
+        # KPIs
+        'total_users': total_users,
+        'total_revenue': total_revenue,
+        'policies_sold_today': policies_sold_today,
+        'pending_claims_count': pending_claims_count,
+        'pending_policy_approvals': pending_policy_approvals,
+        'total_agent_requests': total_agent_requests,
+        
+        # Charts
+        'claim_labels': json.dumps(claim_labels),
+        'claim_data': json.dumps(claim_data),
+        'policy_labels': json.dumps(policy_labels),
+        'policy_data': json.dumps(policy_data),
+        
+        # Tables
+        'pending_policies': pending_policies,
+        'pending_claims': pending_claims,
+    }
+    
+    return render(request, 'accounts/admin_analytics.html', context)

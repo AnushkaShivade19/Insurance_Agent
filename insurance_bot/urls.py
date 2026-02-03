@@ -19,8 +19,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
+from accounts import views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
     
     # 1. Home App
     path('', include('home.urls')),
@@ -34,6 +35,8 @@ urlpatterns = [
     # 4. Allauth (Google Login)
     path('accounts/', include('allauth.urls')), 
 
+    path('admin/', views.admin_analytics_view, name='admin_analytics'),
+    path('admin/apps/', admin.site.index, name='admin_app_list'),
     path('admin/', admin.site.urls),
     path('claims/', include('claims.urls')),
     path('products/', include('insurance.urls')),

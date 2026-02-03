@@ -58,8 +58,7 @@ class Agent(models.Model):
     
     languages = models.CharField(max_length=200, help_text="Comma separated (e.g., Hindi, Marathi)")
     phone_number = models.CharField(max_length=15)
-    experience_years = models.IntegerField(default=1)
-    
+    experience_years = models.IntegerField(default=1)  
     # Status & Metrics
     is_verified = models.BooleanField(default=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=4.5)
