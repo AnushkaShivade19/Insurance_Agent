@@ -6,6 +6,24 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'chatbot/css/chat.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styling for the Language Dropdown */
+        .language-select {
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #4f46e5;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            max-width: 150px;
+        }
+        .language-select:hover {
+            border-color: #4f46e5;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -44,13 +62,19 @@
                     <span style="margin-left: 10px;">Live Chat</span>
                 </div>
 
-                <div class="custom-select-wrapper">
-                    <div class="custom-select-trigger">
-                        <span id="selected-language-text">English</span>
-                        <i data-feather="chevron-down"></i>
-                    </div>
-                    <div class="custom-options">
-                        </div>
+                <div>
+                    <select id="languageSelect" class="language-select" onchange="changeLanguage()">
+                        <option value="en" {% if request.session.language == 'en' %}selected{% endif %}>English</option>
+                        <option value="hi" {% if request.session.language == 'hi' %}selected{% endif %}>Hindi (हिंदी)</option>
+                        <option value="mr" {% if request.session.language == 'mr' %}selected{% endif %}>Marathi (मराठी)</option>
+                        <option value="gu" {% if request.session.language == 'gu' %}selected{% endif %}>Gujarati (ગુજરાતી)</option>
+                        <option value="bn" {% if request.session.language == 'bn' %}selected{% endif %}>Bengali (বাংলা)</option>
+                        <option value="ta" {% if request.session.language == 'ta' %}selected{% endif %}>Tamil (தமிழ்)</option>
+                        <option value="te" {% if request.session.language == 'te' %}selected{% endif %}>Telugu (తెలుగు)</option>
+                        <option value="kn" {% if request.session.language == 'kn' %}selected{% endif %}>Kannada (ಕನ್ನಡ)</option>
+                        <option value="ml" {% if request.session.language == 'ml' %}selected{% endif %}>Malayalam (മലയാളം)</option>
+                        <option value="pa" {% if request.session.language == 'pa' %}selected{% endif %}>Punjabi (ਪੰਜਾਬੀ)</option>
+                    </select>
                 </div>
             </div>
 
@@ -82,42 +106,53 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'chatbot/js/chat.js' %}?v=9.1"></script>
-    
+    <script src="{% static 'chatbot/js/chat.js' %}?v=9.2"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Initialize Icons
+            // 1. Initialize Icons
             feather.replace();
             
-            // --- ENTER KEY LISTENER FIX ---
+            // 2. Enable "Enter" key to send message
             const inputField = document.getElementById("userInput");
             if (inputField) {
                 inputField.addEventListener("keypress", function(event) {
-                    // Check if the key pressed is "Enter"
                     if (event.key === "Enter") {
-                        event.preventDefault(); // Prevent default behavior
-                        sendMessage(); // Trigger the send function from chat.js
+                        event.preventDefault(); 
+                        sendMessage(); 
                     }
                 });
             }
-
-            // --- AUTO-GREET IF OFFLINE ---
-            if (!navigator.onLine) {
-                setTimeout(() => {
-                    const chatBox = document.getElementById("chatBox");
-                    // Only greet if chat is empty
-                    if(chatBox && chatBox.children.length === 0) {
-                        if (typeof getOfflineResponse === 'function') {
-                            const greeting = getOfflineResponse("start"); 
-                            // Manually append if appendMessage isn't global, 
-                            // otherwise chat.js usually handles this.
-                            // This serves as a fail-safe.
-                        }
-                    }
-                }, 1000);
-            }
         });
+
+        // --- LANGUAGE CHANGE LOGIC ---
+        function changeLanguage() {
+            const langCode = document.getElementById('languageSelect').value;
+            const csrfToken = document.getElementById('chat-config').dataset.csrf;
+            const url = document.getElementById('chat-config').dataset.setLangUrl;
+
+            // Call Django backend to update session
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ language: langCode })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log("Language updated to:", langCode);
+                    // Optional: Visual feedback (e.g., change input placeholder)
+                    const input = document.getElementById('userInput');
+                    if (langCode === 'hi') input.placeholder = "बीमा सखी से पूछें...";
+                    else if (langCode === 'mr') input.placeholder = "विमा सखीला विचारा...";
+                    else input.placeholder = "Ask BimaSakhi...";
+                }
+            })
+            .catch(error => console.error('Error changing language:', error));
+        }
     </script>
 {% endblock %}
