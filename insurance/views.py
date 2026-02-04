@@ -115,6 +115,18 @@ def talk_to_agent(request, pk):
         messages.success(request, "Request submitted! An agent will call you shortly.")
     
     return redirect('product_detail', pk=pk)
+    
+def purchase_redirect(request):
+    """
+    Catches /purchase/?product_id=7 and redirects to /product/7/buy/
+    """
+    product_id = request.GET.get('product_id')
+    if product_id:
+        # Redirect to the actual buy view defined in your urls
+        return redirect('buy_policy', pk=product_id)
+    
+    # If no ID provided, go to product list
+    return redirect('products')
 
 # 5. BUY POLICY ACTION
 @login_required

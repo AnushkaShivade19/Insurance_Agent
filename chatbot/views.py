@@ -1,184 +1,198 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-import requests, os, json, datetime
-from django.http import HttpResponse, JsonResponse
-from gtts import gTTS
-from io import BytesIO
-# Import models and recommendation logic
-from insurance.models import Policy, InsuranceProduct
-from .recommendation_logic import generate_recommendations
-import random
-import time
-# --- DICTIONARIES FOR LANGUAGE AND SURVEY ---
-
-LANGUAGES = {
-    'en': 'English', 'as': 'Assamese', 'bn': 'Bengali', 'brx': 'Bodo', 'doi': 'Dogri', 'gu': 'Gujarati', 'hi': 'Hindi',
-    'kn': 'Kannada', 'ks': 'Kashmiri', 'kok': 'Konkani', 'mai': 'Maithili', 'ml': 'Malayalam', 'mni': 'Manipuri',
-    'mr': 'Marathi', 'ne': 'Nepali', 'or': 'Odia', 'pa': 'Punjabi', 'sa': 'Sanskrit', 'sat': 'Santali', 'sd': 'Sindhi',
-    'ta': 'Tamil', 'te': 'Telugu', 'ur': 'Urdu'
-}
-
-SURVEY_QUESTIONS = {
-    'en': { 1: "Who are you looking to insure?", 2: "What is your main occupation?", 3: "Which age group do you belong to?", 4: "Do you own a vehicle (like a tractor, bike, or car)?", },
-    'hi': { 1: "आप किसका बीमा कराना चाहते हैं?", 2: "आपका मुख्य व्यवसाय क्या है?", 3: "आप किस आयु वर्ग के हैं?", 4: "क्या आपके पास कोई वाहन है?", },
-    'mr': { 1: "तुम्ही कोणाचा विमा काढू इच्छिता?", 2: "तुमचा मुख्य व्यवसाय काय आहे?", 3: "तुम्ही कोणत्या वयोगटातील आहात?", 4: "तुमच्याकडे वाहन आहे का?", },
-}
-
-# --- CORE VIEWS ---
-
-@login_required
-def chat_view(request):
-    if 'history' in request.session: del request.session['history']
-    if 'survey_state' in request.session: del request.session['survey_state']
-    return render(request, 'chatbot/chat.html')
-
-
 import os
 import json
-import time
-import random
 import requests
+import re
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
-from django.conf import settings
-from insurance.models import InsuranceProduct, Policy 
+from django.views.decorators.csrf import csrf_exempt
 from gtts import gTTS
 from io import BytesIO
+from insurance.models import InsuranceProduct
 
-# --- LANGUAGE MAP ---
+# ==========================================
+# 1. CONFIGURATIONS
+# ==========================================
+
 LANGUAGES = {
     'en': 'English', 'hi': 'Hindi', 'mr': 'Marathi', 
     'gu': 'Gujarati', 'bn': 'Bengali', 'ta': 'Tamil'
 }
 
+# The Keys for saving data
+SURVEY_STEPS = ["occupation", "age", "income", "vehicle"]
+
+# The Scripts (Questions) - MUST MATCH THE LENGTH OF SURVEY_STEPS
+SURVEY_SCRIPTS = {
+    'en': [
+        "To find the perfect match, I need a few details. First, what is your **main occupation**?",
+        "Got it. What is your current **age**?",
+        "Roughly, what is your **annual family income**?",
+        "Do you own a **vehicle** (Car, Bike, Tractor)?"
+    ],
+    'hi': [
+        "सही प्लान खोजने के लिए, मुझे कुछ जानकारी चाहिए। सबसे पहले, आपका **मुख्य व्यवसाय** क्या है?",
+        "समझ गयी। आपकी **उम्र** क्या है?",
+        "मोटे तौर पर, आपकी **वार्षिक पारिवारिक आय** कितनी है?",
+        "क्या आपके पास कोई **वाहन** (कार, बाइक, ट्रैक्टर) है?"
+    ]
+}
+
+# ==========================================
+# 2. CORE VIEWS
+# ==========================================
+
+def chat_view(request):
+    if 'survey_step' in request.session: 
+        del request.session['survey_step']
+    return render(request, 'chatbot/chat.html')
+
 def get_response(request):
-    user_message = request.GET.get('userMessage', '').strip()
-    context = request.GET.get('context', '').strip()
-    api_key = os.getenv("GEMINI_API_KEY")
-    
-    # 1. GET LANGUAGE (Default to English)
+    user_msg = request.GET.get('userMessage', '').strip()
     lang_code = request.session.get('language', 'en')
+    
+    # Initialize Session
+    if 'survey_step' not in request.session:
+        request.session['survey_step'] = -1
+        request.session['survey_data'] = {}
+
+    step = request.session['survey_step']
+
+    # --- ROUTE 1: IN SURVEY? ---
+    if step >= 0:
+        return handle_survey_logic(request, user_msg, lang_code)
+
+    # --- ROUTE 2: INTENT DETECTION ---
+    buy_keywords = ['buy', 'plan', 'suggest', 'recommend', 'policy', 'best', 'insurance for me', 'start']
+    if any(k in user_msg.lower() for k in buy_keywords):
+        # Start Survey
+        request.session['survey_step'] = 0
+        scripts = SURVEY_SCRIPTS.get(lang_code, SURVEY_SCRIPTS['en'])
+        
+        intro = "Sure! I can help you find the best policy. " if lang_code == 'en' else "ज़रूर! मैं आपको सबसे अच्छी पॉलिसी खोजने में मदद कर सकती हूँ। "
+        return JsonResponse({"botResponse": intro + scripts[0]})
+
+    # --- ROUTE 3: GENERAL CHAT ---
+    return handle_general_chat(user_msg, lang_code)
+
+
+# ==========================================
+# 3. HELPER: SURVEY LOGIC (THE FIX)
+# ==========================================
+def handle_survey_logic(request, user_msg, lang_code):
+    step = request.session['survey_step']
+    survey_data = request.session['survey_data']
+    
+    # 1. Identify current question
+    if step < len(SURVEY_STEPS):
+        current_key = SURVEY_STEPS[step]
+
+        # 2. Validate Input
+        is_valid, error_msg = validate_input(current_key, user_msg)
+        if not is_valid:
+            return JsonResponse({"botResponse": error_msg})
+
+        # 3. Save Answer
+        survey_data[current_key] = user_msg
+        request.session['survey_data'] = survey_data
+        
+        # 4. Determine Next Step
+        next_step = step + 1
+        scripts = SURVEY_SCRIPTS.get(lang_code, SURVEY_SCRIPTS['en'])
+
+        # --- CRITICAL FIX HERE ---
+        # Ensure next_step is within bounds for BOTH keys and scripts
+        if next_step < len(SURVEY_STEPS) and next_step < len(scripts):
+            request.session['survey_step'] = next_step
+            return JsonResponse({"botResponse": scripts[next_step]})
+    
+    # 5. SURVEY COMPLETE -> RAG
+    relevant_products = InsuranceProduct.objects.filter(is_active=True).values('id', 'name', 'base_premium', 'description')
+    
+    context_text = "\n".join([
+        f"- ID {p['id']}: {p['name']} ({p['description']}) @ ₹{p['base_premium']}/yr" 
+        for p in relevant_products
+    ])
+    
+    user_profile = ", ".join([f"{k}: {v}" for k,v in survey_data.items()])
     language_name = LANGUAGES.get(lang_code, 'English')
-
-    # 2. STRICT SYSTEM PROMPT
-    SYSTEM_PROMPT = f"""
-    You are 'BimaSakhi', a trusted insurance advisor.
     
-    **CRITICAL LANGUAGE RULE:** You MUST reply ONLY in **{language_name}**. Do not mix languages.
-    If the user speaks a different language, politely answer in **{language_name}**.
-
-    **Goal:** Educate simply, build trust, and sell policies.
-
-    **FORMATTING RULES:**
-    1. Use **bold** for key terms (e.g., **Premium**, **Coverage**).
-    2. Keep answers short (under 60 words) for better audio reading.
-    3. When recommending a policy, use this HTML format EXACTLY:
+    prompt = f"""
+    You are BimaSakhi, an expert insurance advisor.
+    USER PROFILE: {user_profile}
+    POLICIES: {context_text}
+    Recommend ONE policy. Explain why.
+    Answer in {language_name}.
     
+    HTML FORMAT:
     <div class="policy-card">
-       <div class="policy-header">🏆 Recommended: [Product Name]</div>
+       <div class="policy-header"> Best Match: [Product Name]</div>
        <div class="policy-body">
-           <p><b>Why:</b> [1-sentence reason]</p>
+           <p><b>Why:</b> [Reasoning]</p>
            <p class="price">₹[Premium] / year</p>
        </div>
-       <a href="/purchase/?product_id=[ID]" class="buy-btn">View & Buy Now</a>
+       
+       <a href="/products/product/[ID]/" class="buy-btn">View Details</a>
+       
     </div>
     """
-
-    # 3. FETCH INVENTORY
-    active_products = InsuranceProduct.objects.filter(is_active=True).values('id', 'name', 'base_premium', 'description')
-    inventory_text = "\n".join([f"ID {p['id']}: {p['name']} @ ₹{p['base_premium']}" for p in active_products])
-
-    # 4. FINAL PROMPT CONSTRUCTION
-    final_prompt = f"""
-    {SYSTEM_PROMPT}
     
-    **INVENTORY:**
-    {inventory_text}
-    
-    **USER CONTEXT:** Looking at '{context}' (if any).
-    **USER SAYS:** "{user_message}"
+    request.session['survey_step'] = -1 
+    return call_gemini(prompt, os.getenv("GEMINI_API_KEY"))
+
+
+# ==========================================
+# 4. HELPER: VALIDATION
+# ==========================================
+def validate_input(key, text):
+    text = text.strip().lower()
+    if key == "age":
+        numbers = re.findall(r'\d+', text)
+        if not numbers: return False, "Please enter a valid number for your age (e.g., 35)."
+        if int(numbers[0]) < 18: return False, "You must be 18+ for insurance."
+    elif key == "income":
+        if not any(c.isdigit() for c in text): return False, "Please enter income in numbers."
+    return True, ""
+
+
+# ==========================================
+# 5. UTILS
+# ==========================================
+def handle_general_chat(user_msg, lang_code):
+    language_name = LANGUAGES.get(lang_code, 'English')
+    prompt = f"""
+    You are BimaSakhi (Insurance Agent).
+    User: "{user_msg}"
+    Answer in {language_name}. Be helpful and short.
+    At the end ask: "Shall I suggest a plan for you?"
     """
+    return call_gemini(prompt, os.getenv("GEMINI_API_KEY"))
 
-    # 5. API CALL
+def call_gemini(prompt, api_key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     try:
-        response = requests.post(url, json={"contents": [{"parts": [{"text": final_prompt}]}]})
+        response = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]})
         response.raise_for_status()
-        bot_reply = response.json()['candidates'][0]['content']['parts'][0]['text']
-    except Exception as e:
-        bot_reply = "I am having trouble connecting. Please try again."
+        reply = response.json()['candidates'][0]['content']['parts'][0]['text']
+        return JsonResponse({"botResponse": reply})
+    except:
+        return JsonResponse({"botResponse": "Connection error. Please try again."})
 
-    return JsonResponse({"botResponse": bot_reply})
-
-# TTS View (Unchanged but ensuring it works)
 def speak_text(request):
     text = request.GET.get('text', '')
-    lang = request.GET.get('lang', 'en')
-    
-    # Map 'en-IN' to 'en' for gTTS compatibility
-    lang = lang.split('-')[0] 
-    
+    lang = request.GET.get('lang', 'en').split('-')[0]
     if not text: return HttpResponse(status=400)
     try:
-        tts = gTTS(text=text, lang=lang, tld='co.in', slow=False)
+        tts = gTTS(text=text, lang=lang, slow=False)
         audio_file = BytesIO()
         tts.write_to_fp(audio_file)
         audio_file.seek(0)
         return HttpResponse(audio_file, content_type='audio/mpeg')
     except: return HttpResponse(status=500)
-    return JsonResponse({"botResponse": bot_reply})
 
 @csrf_exempt
-@login_required
 def set_language(request):
     if request.method == 'POST':
-        data = json.loads(request.body); lang_code = data.get('language', 'en')
-        request.session['language'] = lang_code
-        if 'history' in request.session: del request.session['history']
+        data = json.loads(request.body)
+        request.session['language'] = data.get('language', 'en')
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
-@csrf_exempt
-@login_required
-def set_language(request):
-    if request.method == 'POST':
-        data = json.loads(request.body); lang_code = data.get('language', 'en')
-        request.session['language'] = lang_code
-        if 'history' in request.session: del request.session['history']
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
-
-
-def speak_text(request):
-    """
-    Converts text to speech using Google's TTS API server-side 
-    and returns an audio file.
-    """
-    text = request.GET.get('text', '')
-    lang = request.GET.get('lang', 'en')
-
-    if not text:
-        return JsonResponse({'error': 'No text provided'}, status=400)
-
-    # Clean the language code (e.g., 'en-IN' -> 'en')
-    # gTTS supports some regional codes, but 'en', 'hi', 'mr', etc. are safest.
-    # You might need a mapping dictionary if exact codes don't match.
-    lang_code = lang.split('-')[0] 
-
-    try:
-        # Generate Speech
-        tts = gTTS(text=text, lang=lang_code, slow=False)
-        
-        # Save to memory buffer
-        audio_data = BytesIO()
-        tts.write_to_fp(audio_data)
-        audio_data.seek(0)
-
-        # Return as audio response
-        response = HttpResponse(audio_data, content_type='audio/mpeg')
-        response['Content-Disposition'] = 'inline; filename="speech.mp3"'
-        return response
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)

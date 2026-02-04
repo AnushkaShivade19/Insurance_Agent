@@ -1,149 +1,195 @@
 from pathlib import Path
-from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
 
-SITE_ID = 1
+# --------------------------------------------------
+# BASE DIR & ENV
+# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(BASE_DIR / ".env")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# --------------------------------------------------
+# SECURITY
+# --------------------------------------------------
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-unsafe-development-key"
+)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-djq+!-g)4^3j*v53)q34x(p%uay0r8v*rml9d-oz+ia(f)=1dg")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = ['.vercel.app', 'localhost','127.0.0.1']
-LOGIN_URL = 'login'
-# Application definition
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".vercel.app",
+]
+
+# --------------------------------------------------
+# APPLICATIONS
+# --------------------------------------------------
 INSTALLED_APPS = [
-    'home',
-    'chatbot',
-    'insurance', 
-    'django.contrib.admin',
-    'django.contrib.humanize',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'allauth',
-    'claims',
-    'accounts',
-    'pwa',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    # CORE DJANGO
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.humanize",
+
+    # THIRD PARTY
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "pwa",
+
+    # LOCAL APPS
+    "home",
+    "chatbot",
+    "insurance",
+    "claims",
+    "accounts",
 ]
 
+SITE_ID = 1
+
+# --------------------------------------------------
+# MIDDLEWARE
+# --------------------------------------------------
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    'allauth.account.middleware.AccountMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+
+    "allauth.account.middleware.AccountMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-PWA_APP_NAME = 'BeemaSakhi'
-PWA_APP_DESCRIPTION = "insurance made easy."
-PWA_APP_THEME_COLOR = '#0A0302'
-PWA_APP_ICONS = [{'src': '/static/images/icon.png', 'sizes': '160x160'}]
-# Tell Django where your custom service worker will live
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
 
-# Add this at the bottom of the file
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-# Redirects
-LOGIN_REDIRECT_URL = 'dashboard'  # <--- Essential for the flow to start
-LOGOUT_REDIRECT_URL = 'login'
+# --------------------------------------------------
+# URLS / WSGI
+# --------------------------------------------------
+ROOT_URLCONF = "insurance_bot.urls"
+WSGI_APPLICATION = "insurance_bot.wsgi.application"
 
-# Allauth Config
-SOCIALACCOUNT_AUTO_SIGNUP = True  # Automatically creates user without asking for username
-SOCIALACCOUNT_LOGIN_ON_GET = True # Skips the "Are you sure?" confirmation screen
-ROOT_URLCONF = 'insurance_bot.urls'
-
+# --------------------------------------------------
+# TEMPLATES
+# --------------------------------------------------
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # ✅ allows global template directory if you use one
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'insurance_bot.wsgi.application'
-
-# Database
+# --------------------------------------------------
+# DATABASE
+# --------------------------------------------------
 DATABASES = {
-    'default': dj_database_url.config(
-        # Replace this with your variable name if different
-        default=os.environ.get('DATABASE_URL'), 
-        conn_max_age=600
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=not DEBUG,
     )
 }
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+# --------------------------------------------------
+# AUTHENTICATION
+# --------------------------------------------------
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-# ✅ Internationalization (fixed typo: USE_I18N)
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'  # set to India timezone (you can adjust)
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "dashboard"
+LOGOUT_REDIRECT_URL = "login"
+
+# ALLAUTH CONFIG
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_LOGOUT_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# --------------------------------------------------
+# PASSWORD VALIDATION
+# --------------------------------------------------
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+# --------------------------------------------------
+# INTERNATIONALIZATION
+# --------------------------------------------------
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-import os
-from pathlib import Path
+# --------------------------------------------------
+# STATIC & MEDIA
+# --------------------------------------------------
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 
-# URL to use when referring to static files (where they will be served from)
-STATIC_URL = 'static/'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-# Where your static files live during development (e.g., inside your 'static' folder)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'), 
+# --------------------------------------------------
+# PWA CONFIG
+# --------------------------------------------------
+PWA_APP_NAME = "BimaSakhi"
+PWA_APP_DESCRIPTION = "Your Village Insurance Sister"
+PWA_THEME_COLOR = "#4f46e5"
+PWA_BACKGROUND_COLOR = "#ffffff"
+PWA_DISPLAY = "standalone"
+PWA_SCOPE = "/"
+PWA_START_URL = "/"
+PWA_APP_LANG = "en-US"
+
+PWA_APP_ICONS = [
+    {
+        "src": "/static/images/icon-192.png",
+        "sizes": "192x192",
+    },
+    {
+        "src": "/static/images/icon-512.png",
+        "sizes": "512x512",
+    },
 ]
 
-# Where Django collects all static files for production (WhiteNoise serves from here)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+PWA_SERVICE_WORKER_PATH = BASE_DIR / "static/js/serviceworker.js"
 
-# Enable WhiteNoise's file compression and caching
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# ✅ Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-ACCOUNT_USERNAME_REQUIRED = False      # Don't ask for username during signup
-ACCOUNT_AUTHENTICATION_METHOD = 'email' # Users log in with email
-ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
-ACCOUNT_UNIQUE_EMAIL = True            # Ensure emails are unique
-ACCOUNT_EMAIL_VERIFICATION = 'none'    # Skip email verification for simplicity (can change to 'mandatory' later)
-# ------------------------------------------------
-ACCOUNT_LOGOUT_ON_GET = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
-# Ensure this is still True
-SOCIALACCOUNT_AUTO_SIGNUP = True
+# --------------------------------------------------
+# DEFAULT FIELD
+# --------------------------------------------------
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

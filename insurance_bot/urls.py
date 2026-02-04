@@ -18,9 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from accounts import views
-
+def chrome_devtools_view(request):
+    return JsonResponse({})
 urlpatterns = [
     
     # 1. Home App
@@ -42,6 +43,8 @@ urlpatterns = [
     path('products/', include('insurance.urls')),
     path('pwa/', include('pwa.urls')),
     path('favicon.ico', lambda request: HttpResponse(status=204)),
+
+    path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_view),
 
 ]
 if settings.DEBUG:

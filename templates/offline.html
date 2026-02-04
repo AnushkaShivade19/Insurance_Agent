@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="text-align: center; padding: 50px;">
+    <h1>You are currently offline</h1>
+    <p>Don't worry! You can still:</p>
+    <ul style="list-style: none;">
+        <li>✅ View policies you visited before</li>
+        <li>✅ Read downloaded PDFs</li>
+        <li>✅ Call our agent helpline (Regular Call)</li>
+    </ul>
+    <button onclick="window.location.reload()">Try Reconnecting</button>
+</div>
+{% endblock %}

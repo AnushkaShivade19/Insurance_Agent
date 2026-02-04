@@ -7,6 +7,7 @@ import json
 import random
 
 # Models & Forms
+from accounts import views
 from insurance.models import Policy, InsuranceProduct, FAQ,Article
 from accounts.models import Profile , Agent
 from insurance.forms import PolicyPurchaseForm
@@ -102,3 +103,9 @@ def purchase_policy_view(request):
         form = PolicyPurchaseForm(initial=initial_data)
 
     return render(request, 'home/purchase_policy.html', {'form': form})
+
+# views.py
+def offline_view(request):
+    return render(request, 'offline.html')
+
+# urls.py

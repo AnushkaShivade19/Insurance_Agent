@@ -82,11 +82,42 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'chatbot/js/chat.js' %}?v=8.0"></script>
+    <script src="{% static 'chatbot/js/chat.js' %}?v=9.1"></script>
+    
     <script src="https://unpkg.com/feather-icons"></script>
+    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize Icons
             feather.replace();
+            
+            // --- ENTER KEY LISTENER FIX ---
+            const inputField = document.getElementById("userInput");
+            if (inputField) {
+                inputField.addEventListener("keypress", function(event) {
+                    // Check if the key pressed is "Enter"
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Prevent default behavior
+                        sendMessage(); // Trigger the send function from chat.js
+                    }
+                });
+            }
+
+            // --- AUTO-GREET IF OFFLINE ---
+            if (!navigator.onLine) {
+                setTimeout(() => {
+                    const chatBox = document.getElementById("chatBox");
+                    // Only greet if chat is empty
+                    if(chatBox && chatBox.children.length === 0) {
+                        if (typeof getOfflineResponse === 'function') {
+                            const greeting = getOfflineResponse("start"); 
+                            // Manually append if appendMessage isn't global, 
+                            // otherwise chat.js usually handles this.
+                            // This serves as a fail-safe.
+                        }
+                    }
+                }, 1000);
+            }
         });
     </script>
 {% endblock %}
